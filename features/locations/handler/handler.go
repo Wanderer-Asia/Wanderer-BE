@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 	"wanderer/features/locations"
 
 	echo "github.com/labstack/echo/v4"
@@ -44,7 +45,33 @@ func (hdl *locationHandler) GetAll() echo.HandlerFunc {
 }
 
 func (hdl *locationHandler) Create() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(LocationCreateRequest)
+
+		if err := c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "please fill input correctly"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		err := hdl.locationService.Create(c.Request().Context(), request.ToEntity())
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "create location success"
+		return c.JSON(http.StatusCreated, response)
+	}
 }
 
 func (hdl *locationHandler) Update() echo.HandlerFunc {

@@ -41,3 +41,25 @@ func (mod *Location) ToEntity() *locations.Location {
 
 	return ent
 }
+
+func (mod *Location) FromEntity(ent locations.Location) {
+	if ent.Id != 0 {
+		mod.Id = ent.Id
+	}
+
+	if ent.Name != "" {
+		mod.Name = ent.Name
+	}
+
+	if !ent.CreatedAt.IsZero() {
+		mod.CreatedAt = ent.CreatedAt
+	}
+
+	if !ent.UpdatedAt.IsZero() {
+		mod.UpdatedAt = ent.UpdatedAt
+	}
+
+	if !ent.DeletedAt.IsZero() {
+		mod.DeletedAt = gorm.DeletedAt{Time: ent.DeletedAt}
+	}
+}

@@ -49,7 +49,41 @@ func TestLocationServiceGetAll(t *testing.T) {
 }
 
 func TestLocationServiceCreate(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewLocationService(repo)
+	ctx := context.Background()
 
+	t.Run("invalid name", func(t *testing.T) {
+		caseData := locations.Location{}
+
+		err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "name")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := locations.Location{
+			Name: "example location",
+		}
+		repo.On("Create", ctx, caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := locations.Location{
+			Name: "example location",
+		}
+		repo.On("Create", ctx, caseData).Return(nil).Once()
+		err := srv.Create(ctx, caseData)
+
+		assert.NoError(t, err)
+		repo.AssertExpectations(t)
+	})
 }
 
 func TestLocationServiceUpdate(t *testing.T) {

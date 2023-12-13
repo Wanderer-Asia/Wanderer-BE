@@ -3,6 +3,7 @@ package routes
 import (
 	"wanderer/features/locations"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,4 +19,5 @@ func (router Routes) InitRouter() {
 
 func (router *Routes) LocationRouter() {
 	router.Server.GET("/locations", router.LocationHandler.GetAll())
+	router.Server.POST("/locations", router.LocationHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 }

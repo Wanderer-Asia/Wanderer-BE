@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"wanderer/features/locations"
 
 	"gorm.io/gorm"
@@ -32,7 +33,19 @@ func (repo *locationRepository) GetAll(ctx context.Context) ([]locations.Locatio
 }
 
 func (repo *locationRepository) Create(ctx context.Context, data locations.Location) error {
-	panic("unimplemented")
+	var mod = new(Location)
+	mod.FromEntity(data)
+
+	qry := repo.mysqlDB.Create(mod)
+	if qry.Error != nil {
+		return qry.Error
+	}
+
+	if qry.RowsAffected == 0 {
+		return errors.New("failed to create location")
+	}
+
+	return nil
 }
 
 func (repo *locationRepository) Update(ctx context.Context, id uint, data locations.Location) error {
