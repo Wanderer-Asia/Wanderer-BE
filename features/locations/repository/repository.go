@@ -18,7 +18,17 @@ type locationRepository struct {
 }
 
 func (repo *locationRepository) GetAll(ctx context.Context) ([]locations.Location, error) {
-	panic("unimplemented")
+	var data []Location
+	if err := repo.mysqlDB.Find(&data).Error; err != nil {
+		return nil, err
+	}
+
+	var result []locations.Location
+	for _, location := range data {
+		result = append(result, *location.ToEntity())
+	}
+
+	return result, nil
 }
 
 func (repo *locationRepository) Create(ctx context.Context, data locations.Location) error {

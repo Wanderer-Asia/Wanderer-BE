@@ -16,7 +16,12 @@ type locationService struct {
 }
 
 func (srv *locationService) GetAll(ctx context.Context) ([]locations.Location, error) {
-	panic("unimplemented")
+	result, err := srv.repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (srv *locationService) Create(ctx context.Context, data locations.Location) error {

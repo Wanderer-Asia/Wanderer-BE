@@ -7,6 +7,7 @@ import (
 )
 
 type Routes struct {
+	JWTKey          string
 	Server          *echo.Echo
 	LocationHandler locations.Handler
 }
@@ -16,4 +17,5 @@ func (router Routes) InitRouter() {
 }
 
 func (router *Routes) LocationRouter() {
+	router.Server.GET("/locations", router.LocationHandler.GetAll())
 }

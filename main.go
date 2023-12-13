@@ -28,6 +28,11 @@ func main() {
 		panic(err)
 	}
 
+	var jwtConfig = new(config.JWT)
+	if err := jwtConfig.LoadFromEnv(); err != nil {
+		panic(err)
+	}
+
 	locationRepository := lr.NewLocationRepository(dbConnection)
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService)
@@ -37,6 +42,7 @@ func main() {
 	app.Use(middleware.CORS())
 
 	route := routes.Routes{
+		JWTKey:          jwtConfig.Secret,
 		Server:          app,
 		LocationHandler: locationHandler,
 	}

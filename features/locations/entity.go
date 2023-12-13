@@ -2,6 +2,7 @@ package locations
 
 import (
 	"context"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -9,6 +10,10 @@ import (
 type Location struct {
 	Id   uint
 	Name string
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
 }
 
 type Handler interface {
