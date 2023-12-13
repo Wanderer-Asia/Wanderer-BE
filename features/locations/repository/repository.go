@@ -65,5 +65,14 @@ func (repo *locationRepository) Update(ctx context.Context, id uint, data locati
 }
 
 func (repo *locationRepository) Delete(ctx context.Context, id uint) error {
-	panic("unimplemented")
+	qry := repo.mysqlDB.Where(&Location{Id: id}).Delete(&Location{})
+	if qry.Error != nil {
+		return qry.Error
+	}
+
+	if qry.RowsAffected == 0 {
+		return errors.New("not found")
+	}
+
+	return nil
 }

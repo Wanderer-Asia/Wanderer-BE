@@ -54,5 +54,13 @@ func (srv *locationService) Update(ctx context.Context, id uint, data locations.
 }
 
 func (srv *locationService) Delete(ctx context.Context, id uint) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: invalid location id")
+	}
+
+	if err := srv.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
 }

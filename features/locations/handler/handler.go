@@ -103,6 +103,11 @@ func (hdl *locationHandler) Update() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "location not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
 			response["message"] = "internal server error"
 			return c.JSON(http.StatusInternalServerError, response)
 		}
@@ -113,5 +118,35 @@ func (hdl *locationHandler) Update() echo.HandlerFunc {
 }
 
 func (hdl *locationHandler) Delete() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		locationId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid location id"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := hdl.locationService.Delete(c.Request().Context(), uint(locationId)); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "location not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "delete location success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
