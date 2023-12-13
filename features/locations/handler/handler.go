@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/features/locations"
 
@@ -47,7 +48,7 @@ func (hdl *locationHandler) GetAll() echo.HandlerFunc {
 func (hdl *locationHandler) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
-		var request = new(LocationCreateRequest)
+		var request = new(LocationCreateUpdateRequest)
 
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
@@ -75,7 +76,40 @@ func (hdl *locationHandler) Create() echo.HandlerFunc {
 }
 
 func (hdl *locationHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(LocationCreateUpdateRequest)
+
+		locationId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid location id"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "please fill input correctly"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := hdl.locationService.Update(c.Request().Context(), uint(locationId), request.ToEntity()); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "update location success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *locationHandler) Delete() echo.HandlerFunc {

@@ -49,7 +49,19 @@ func (repo *locationRepository) Create(ctx context.Context, data locations.Locat
 }
 
 func (repo *locationRepository) Update(ctx context.Context, id uint, data locations.Location) error {
-	panic("unimplemented")
+	var mod = new(Location)
+	mod.FromEntity(data)
+
+	qry := repo.mysqlDB.Where(&Location{Id: id}).Updates(mod)
+	if qry.Error != nil {
+		return qry.Error
+	}
+
+	if qry.RowsAffected == 0 {
+		return errors.New("not found")
+	}
+
+	return nil
 }
 
 func (repo *locationRepository) Delete(ctx context.Context, id uint) error {

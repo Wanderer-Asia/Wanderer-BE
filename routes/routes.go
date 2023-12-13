@@ -20,4 +20,5 @@ func (router Routes) InitRouter() {
 func (router *Routes) LocationRouter() {
 	router.Server.GET("/locations", router.LocationHandler.GetAll())
 	router.Server.POST("/locations", router.LocationHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.PUT("/locations/:id", router.LocationHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 }

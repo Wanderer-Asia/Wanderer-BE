@@ -2,11 +2,11 @@ package handler
 
 import "wanderer/features/locations"
 
-type LocationCreateRequest struct {
+type LocationCreateUpdateRequest struct {
 	Name string `json:"name"`
 }
 
-func (req *LocationCreateRequest) ToEntity() locations.Location {
+func (req *LocationCreateUpdateRequest) ToEntity() locations.Location {
 	var ent = new(locations.Location)
 
 	if req.Name != "" {
