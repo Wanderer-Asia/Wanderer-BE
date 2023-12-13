@@ -2,9 +2,15 @@ package main
 
 import (
 	"wanderer/config"
+	"wanderer/helpers/encrypt"
 	"wanderer/routes"
 	"wanderer/utils/database"
 
+	uh "wanderer/features/users/handler"
+	ur "wanderer/features/users/repository"
+	us "wanderer/features/users/service"
+
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -24,12 +30,29 @@ func main() {
 		panic(err)
 	}
 
+	var cldConfig = new(config.Cloudinary)
+	if err := cldConfig.LoadFromEnv(); err != nil {
+		panic(err)
+	}
+
+	cld, err := cloudinary.NewFromParams(cldConfig.CloudName, cldConfig.ApiKey, cldConfig.ApiSecret)
+	if err != nil {
+		panic(err)
+	}
+
+	enc := encrypt.NewBcrypt(10)
+
+	userRepository := ur.NewUserRepository(dbConnection, cld)
+	userService := us.NewUserService(userRepository, enc)
+	userHandler := uh.NewUserHandler(userService)
+
 	app := echo.New()
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
 
 	route := routes.Routes{
-		Server: app,
+		Server:      app,
+		UserHandler: userHandler,
 	}
 
 	route.InitRouter()
