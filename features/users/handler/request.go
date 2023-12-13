@@ -9,6 +9,13 @@ type RegisterRequest struct {
 	Password string `json:"password,omitempty"`
 }
 
+type LoginRequest struct {
+	Name     string `json:"name,omitempty"`
+	Phone    string `json:"phone,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
 func (req *RegisterRequest) ToEntity() *users.User {
 	var ent = new(users.User)
 
@@ -19,6 +26,20 @@ func (req *RegisterRequest) ToEntity() *users.User {
 	if req.Phone != "" {
 		ent.Phone = req.Phone
 	}
+
+	if req.Email != "" {
+		ent.Email = req.Email
+	}
+
+	if req.Password != "" {
+		ent.Password = req.Password
+	}
+
+	return ent
+}
+
+func (req *LoginRequest) ToEntity() *users.User {
+	var ent = new(users.User)
 
 	if req.Email != "" {
 		ent.Email = req.Email

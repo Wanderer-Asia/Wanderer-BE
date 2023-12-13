@@ -31,7 +31,13 @@ func (repo *userRepository) Register(newUser users.User) error {
 }
 
 func (repo *userRepository) Login(email string) (*users.User, error) {
-	panic("unimplemented")
+	var model = new(User)
+
+	if err := repo.mysqlDB.Where("email = ?", email).First(model).Error; err != nil {
+		return nil, err
+	}
+
+	return model.ToEntity(), nil
 }
 
 func (repo *userRepository) Update(id uint, updateUser users.User) error {

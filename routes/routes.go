@@ -18,4 +18,5 @@ func (router Routes) InitRouter() {
 
 func (router *Routes) UserRouter() {
 	router.Server.POST("/register", router.UserHandler.Register())
+	router.Server.POST("/login", router.UserHandler.Login())
 }

@@ -49,7 +49,24 @@ func (srv *userService) Register(newUser users.User) error {
 }
 
 func (srv *userService) Login(email string, password string) (*users.User, error) {
-	panic("unimplemented")
+	if email == "" {
+		return nil, errors.New("validate: email can't be empty")
+	}
+
+	if password == "" {
+		return nil, errors.New("validate: password can't be empty")
+	}
+
+	result, err := srv.repo.Login(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := srv.enc.Compare(result.Password, password); err != nil {
+		return nil, errors.New("validate: wrong password")
+	}
+
+	return result, nil
 }
 
 func (srv *userService) Update(id uint, updateUser users.User) error {
