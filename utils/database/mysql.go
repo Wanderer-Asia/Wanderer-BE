@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"wanderer/config"
 
+	lr "wanderer/features/locations/repository"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -18,7 +20,9 @@ func MysqlInit(cfg config.DatabaseMysql) (*gorm.DB, error) {
 }
 
 func MysqlMigrate(db *gorm.DB) error {
-	err := db.AutoMigrate()
+	err := db.AutoMigrate(
+		&lr.Location{},
+	)
 
 	if err != nil {
 		return err
