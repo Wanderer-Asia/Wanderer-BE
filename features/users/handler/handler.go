@@ -6,6 +6,7 @@ import (
 	"wanderer/features/users"
 	"wanderer/helpers/tokens"
 
+	"github.com/golang-jwt/jwt/v5"
 	echo "github.com/labstack/echo/v4"
 )
 
@@ -108,7 +109,62 @@ func (hdl *userHandler) Login() echo.HandlerFunc {
 }
 
 func (hdl *userHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(UpdateRequest)
+
+		token := c.Get("user")
+		if token == nil {
+			response["message"] = "unauthorized access"
+			return c.JSON(http.StatusUnauthorized, response)
+		}
+
+		userId, err := tokens.ExtractToken(token.(*jwt.Token))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "unauthorized"
+			return c.JSON(http.StatusUnauthorized, response)
+		}
+
+		if c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "incorect input"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		file, _ := c.FormFile("image")
+		if file != nil {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			request.Image = src
+		}
+
+		if err := hdl.userService.Update(userId, *request.ToEntity()); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "user not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "update user success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *userHandler) Delete() echo.HandlerFunc {

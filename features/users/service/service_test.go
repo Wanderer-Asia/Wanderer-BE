@@ -205,3 +205,65 @@ func TestUserServiceLogin(t *testing.T) {
 		assert.Equal(t, "user", res.Role)
 	})
 }
+
+func TestUserServiceUpdate(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var enc = encMock.NewBcryptHash(t)
+	var srv = service.NewUserService(repo, enc)
+
+	t.Run("invalid user id", func(t *testing.T) {
+		caseData := users.User{
+			Name: "Galih",
+		}
+
+		err := srv.Update(0, caseData)
+
+		assert.ErrorContains(t, err, "user id")
+	})
+
+	t.Run("error from encrypt", func(t *testing.T) {
+		var caseData = users.User{
+			Password: "test",
+		}
+
+		enc.On("Hash", caseData.Password).Return("", errors.New("some error from encrypt")).Once()
+
+		err := srv.Update(1, caseData)
+
+		assert.ErrorContains(t, err, "some error from encrypt")
+
+		enc.AssertExpectations(t)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := users.User{
+			Name: "Galih",
+		}
+
+		repo.On("Update", uint(1), caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Update(1, caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := users.User{
+			Name:     "Galih",
+			Password: "test",
+		}
+
+		enc.On("Hash", caseData.Password).Return("secret", nil).Once()
+
+		caseData.Password = "secret"
+		repo.On("Update", uint(1), caseData).Return(nil).Once()
+
+		caseData.Password = "test"
+		err := srv.Update(1, caseData)
+		assert.Nil(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

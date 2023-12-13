@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"context"
 	"wanderer/features/users"
 
 	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +43,28 @@ func (repo *userRepository) Login(email string) (*users.User, error) {
 }
 
 func (repo *userRepository) Update(id uint, updateUser users.User) error {
-	panic("unimplemented")
+	if updateUser.ImageRaw != nil {
+		UniqueFileName := true
+		res, err := repo.cloudinary.Upload.Upload(context.TODO(), updateUser.ImageRaw, uploader.UploadParams{
+			UniqueFilename: &UniqueFileName,
+			Folder:         "users",
+		})
+
+		if err != nil {
+			return err
+		}
+
+		updateUser.ImageUrl = res.URL
+	}
+
+	var model = new(User)
+	model.FromEntity(updateUser)
+
+	if err := repo.mysqlDB.Where(&User{Id: id}).Updates(model).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *userRepository) Delete(id uint) error {

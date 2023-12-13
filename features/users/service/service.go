@@ -70,7 +70,24 @@ func (srv *userService) Login(email string, password string) (*users.User, error
 }
 
 func (srv *userService) Update(id uint, updateUser users.User) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: invalid user id")
+	}
+
+	if updateUser.Password != "" {
+		hash, err := srv.enc.Hash(updateUser.Password)
+		if err != nil {
+			return err
+		}
+
+		updateUser.Password = hash
+	}
+
+	if err := srv.repo.Update(id, updateUser); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (srv *userService) Delete(id uint) error {
