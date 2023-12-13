@@ -31,15 +31,15 @@ type Handler interface {
 }
 
 type Service interface {
-	Register() error
-	Login() (*User, error)
-	Update() error
-	Delete() error
+	Register(newUser User) error
+	Login(email string, password string) (*User, error)
+	Update(id uint, updateUser User) error
+	Delete(id uint) error
 }
 
 type Repository interface {
-	Register() error
-	Login() (*User, error)
-	Update() error
-	Delete() error
+	Register(newUser User) error
+	Login(email string) (*User, error)
+	Update(id uint, updateUser User) error
+	Delete(id uint) error
 }
