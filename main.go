@@ -2,8 +2,17 @@ package main
 
 import (
 	"wanderer/config"
+	"wanderer/helpers/encrypt"
 	"wanderer/routes"
 	"wanderer/utils/database"
+
+	uh "wanderer/features/users/handler"
+	ur "wanderer/features/users/repository"
+	us "wanderer/features/users/service"
+
+	ah "wanderer/features/airlines/handler"
+	ar "wanderer/features/airlines/repository"
+	as "wanderer/features/airlines/service"
 
 	lh "wanderer/features/locations/handler"
 	lr "wanderer/features/locations/repository"
@@ -44,6 +53,16 @@ func main() {
 		panic(err)
 	}
 
+	enc := encrypt.NewBcrypt(10)
+
+	userRepository := ur.NewUserRepository(dbConnection, cld)
+	userService := us.NewUserService(userRepository, enc)
+	userHandler := uh.NewUserHandler(userService)
+
+	airlineRepository := ar.NewAirlineRepository(dbConnection, cld)
+	airlineService := as.NewAirlineService(airlineRepository)
+	airlineHandler := ah.NewAirlineHandler(airlineService)
+
 	locationRepository := lr.NewLocationRepository(dbConnection, cld)
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService)
@@ -55,6 +74,8 @@ func main() {
 	route := routes.Routes{
 		JWTKey:          jwtConfig.Secret,
 		Server:          app,
+		UserHandler:    userHandler,
+		AirlineHandler: airlineHandler,
 		LocationHandler: locationHandler,
 	}
 
