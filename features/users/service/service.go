@@ -91,5 +91,13 @@ func (srv *userService) Update(id uint, updateUser users.User) error {
 }
 
 func (srv *userService) Delete(id uint) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: invalid user id")
+	}
+
+	if err := srv.repo.Delete(id); err != nil {
+		return err
+	}
+
+	return nil
 }

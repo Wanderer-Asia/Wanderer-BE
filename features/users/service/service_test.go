@@ -267,3 +267,40 @@ func TestUserServiceUpdate(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestUserServiceDelete(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var enc = encMock.NewBcryptHash(t)
+	var srv = service.NewUserService(repo, enc)
+
+	t.Run("invalid user id", func(t *testing.T) {
+		var id = uint(0)
+
+		err := srv.Delete(id)
+
+		assert.ErrorContains(t, err, "user id")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		var id = uint(1)
+
+		repo.On("Delete", id).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Delete(id)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		var id = uint(1)
+
+		repo.On("Delete", id).Return(nil).Once()
+
+		err := srv.Delete(1)
+		assert.Nil(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

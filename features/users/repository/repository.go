@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"wanderer/features/users"
 
 	"github.com/cloudinary/cloudinary-go/v2"
@@ -68,5 +69,14 @@ func (repo *userRepository) Update(id uint, updateUser users.User) error {
 }
 
 func (repo *userRepository) Delete(id uint) error {
-	panic("unimplemented")
+	deleteQuery := repo.mysqlDB.Delete(&User{Id: id})
+	if deleteQuery.Error != nil {
+		return deleteQuery.Error
+	}
+
+	if deleteQuery.RowsAffected == 0 {
+		return errors.New("not found")
+	}
+
+	return nil
 }
