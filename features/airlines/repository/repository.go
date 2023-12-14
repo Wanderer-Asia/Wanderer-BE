@@ -53,7 +53,17 @@ func (repo *airlineRepository) Create(newAirline airlines.Airline) error {
 }
 
 func (repo *airlineRepository) GetAll() ([]airlines.Airline, error) {
-	panic("unimplemented")
+	var dataAirline []Airline
+	if err := repo.mysqlDB.Find(&dataAirline).Error; err != nil {
+		return nil, err
+	}
+
+	var result []airlines.Airline
+	for _, airline := range dataAirline {
+		result = append(result, *airline.ToEntity())
+	}
+
+	return result, nil
 }
 
 func (repo *airlineRepository) Update(id uint, updateAirline airlines.Airline) error {

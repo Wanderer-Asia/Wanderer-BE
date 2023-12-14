@@ -52,7 +52,7 @@ func (hdl *airlineHandler) Create() echo.HandlerFunc {
 			}
 
 			if strings.Contains(err.Error(), "Duplicate") {
-				response["message"] = "email is already in use"
+				response["message"] = "airline name is already in the system"
 				return c.JSON(http.StatusConflict, response)
 			}
 
@@ -66,7 +66,29 @@ func (hdl *airlineHandler) Create() echo.HandlerFunc {
 }
 
 func (hdl *airlineHandler) GetAll() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		result, err := hdl.airlineService.GetAll()
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data []GetAllResponse
+		for _, v := range result {
+			tmpAir := new(GetAllResponse)
+			tmpAir.FromEntity(v)
+
+			data = append(data, *tmpAir)
+		}
+
+		response["message"] = "get all airlines success"
+		response["data"] = data
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *airlineHandler) Update() echo.HandlerFunc {

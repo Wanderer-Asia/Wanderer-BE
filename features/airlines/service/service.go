@@ -28,7 +28,12 @@ func (srv *airlineService) Create(newAirline airlines.Airline) error {
 }
 
 func (srv *airlineService) GetAll() ([]airlines.Airline, error) {
-	panic("unimplemented")
+	result, err := srv.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (srv *airlineService) Update(id uint, updateAirline airlines.Airline) error {
