@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"wanderer/features/locations"
 	"wanderer/features/locations/mocks"
@@ -62,9 +63,21 @@ func TestLocationServiceCreate(t *testing.T) {
 		assert.ErrorContains(t, err, "name")
 	})
 
-	t.Run("error from repository", func(t *testing.T) {
+	t.Run("invalid image", func(t *testing.T) {
 		caseData := locations.Location{
 			Name: "example location",
+		}
+
+		err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "image")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := locations.Location{
+			Name:     "example location",
+			ImageRaw: strings.NewReader("example"),
 		}
 		repo.On("Create", ctx, caseData).Return(errors.New("some error from repository")).Once()
 
@@ -76,7 +89,8 @@ func TestLocationServiceCreate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		caseData := locations.Location{
-			Name: "example location",
+			Name:     "example location",
+			ImageRaw: strings.NewReader("example"),
 		}
 		repo.On("Create", ctx, caseData).Return(nil).Once()
 		err := srv.Create(ctx, caseData)
@@ -111,9 +125,21 @@ func TestLocationServiceUpdate(t *testing.T) {
 		assert.ErrorContains(t, err, "name")
 	})
 
-	t.Run("error from repository", func(t *testing.T) {
+	t.Run("invalid image", func(t *testing.T) {
 		caseData := locations.Location{
 			Name: "example location",
+		}
+
+		err := srv.Update(ctx, 1, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "image")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := locations.Location{
+			Name:     "example location",
+			ImageRaw: strings.NewReader("example"),
 		}
 		repo.On("Update", ctx, uint(1), caseData).Return(errors.New("some error from repository")).Once()
 
@@ -125,7 +151,8 @@ func TestLocationServiceUpdate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		caseData := locations.Location{
-			Name: "example location",
+			Name:     "example location",
+			ImageRaw: strings.NewReader("example"),
 		}
 		repo.On("Update", ctx, uint(1), caseData).Return(nil).Once()
 		err := srv.Update(ctx, 1, caseData)

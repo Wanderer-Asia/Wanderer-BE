@@ -1,9 +1,13 @@
 package handler
 
-import "wanderer/features/locations"
+import (
+	"io"
+	"wanderer/features/locations"
+)
 
 type LocationCreateUpdateRequest struct {
-	Name string `json:"name"`
+	Name     string `form:"name"`
+	ImageRaw io.Reader
 }
 
 func (req *LocationCreateUpdateRequest) ToEntity() locations.Location {
@@ -11,6 +15,10 @@ func (req *LocationCreateUpdateRequest) ToEntity() locations.Location {
 
 	if req.Name != "" {
 		ent.Name = req.Name
+	}
+
+	if req.ImageRaw != nil {
+		ent.ImageRaw = req.ImageRaw
 	}
 
 	return *ent

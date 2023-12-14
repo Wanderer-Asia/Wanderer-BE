@@ -2,6 +2,7 @@ package locations
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -10,6 +11,9 @@ import (
 type Location struct {
 	Id   uint
 	Name string
+
+	ImageUrl string
+	ImageRaw io.Reader
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -57,6 +57,17 @@ func (hdl *locationHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
+		file, _ := c.FormFile("image")
+		if file != nil {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			request.ImageRaw = src
+		}
+
 		err := hdl.locationService.Create(c.Request().Context(), request.ToEntity())
 		if err != nil {
 			c.Logger().Error(err)
@@ -93,6 +104,17 @@ func (hdl *locationHandler) Update() echo.HandlerFunc {
 
 			response["message"] = "please fill input correctly"
 			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		file, _ := c.FormFile("image")
+		if file != nil {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			request.ImageRaw = src
 		}
 
 		if err := hdl.locationService.Update(c.Request().Context(), uint(locationId), request.ToEntity()); err != nil {

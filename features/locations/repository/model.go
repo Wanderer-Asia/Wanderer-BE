@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"io"
 	"time"
 	"wanderer/features/locations"
 
@@ -9,7 +10,10 @@ import (
 
 type Location struct {
 	Id   uint   `gorm:"column:id; primaryKey;"`
-	Name string `gorm:"column:name; type:varchar(200);"`
+	Name string `gorm:"column:name; type:varchar(200); index;"`
+
+	ImageUrl string    `gorm:"column:image; type:text;"`
+	ImageRaw io.Reader `gorm:"-"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -25,6 +29,10 @@ func (mod *Location) ToEntity() *locations.Location {
 
 	if mod.Name != "" {
 		ent.Name = mod.Name
+	}
+
+	if mod.ImageUrl != "" {
+		ent.ImageUrl = mod.ImageUrl
 	}
 
 	if !mod.CreatedAt.IsZero() {
@@ -49,6 +57,10 @@ func (mod *Location) FromEntity(ent locations.Location) {
 
 	if ent.Name != "" {
 		mod.Name = ent.Name
+	}
+
+	if ent.ImageRaw != nil {
+		mod.ImageRaw = ent.ImageRaw
 	}
 
 	if !ent.CreatedAt.IsZero() {

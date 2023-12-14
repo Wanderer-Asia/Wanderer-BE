@@ -30,6 +30,10 @@ func (srv *locationService) Create(ctx context.Context, data locations.Location)
 		return errors.New("validate: please input name")
 	}
 
+	if data.ImageRaw == nil {
+		return errors.New("validate: please insert image")
+	}
+
 	if err := srv.repo.Create(ctx, data); err != nil {
 		return err
 	}
@@ -44,6 +48,10 @@ func (srv *locationService) Update(ctx context.Context, id uint, data locations.
 
 	if data.Name == "" {
 		return errors.New("validate: please input name")
+	}
+
+	if data.ImageRaw == nil {
+		return errors.New("validate: please insert image")
 	}
 
 	if err := srv.repo.Update(ctx, id, data); err != nil {

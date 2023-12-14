@@ -9,6 +9,7 @@ import (
 	lr "wanderer/features/locations/repository"
 	ls "wanderer/features/locations/service"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -33,7 +34,17 @@ func main() {
 		panic(err)
 	}
 
-	locationRepository := lr.NewLocationRepository(dbConnection)
+	var cldConfig = new(config.Cloudinary)
+	if err := cldConfig.LoadFromEnv(); err != nil {
+		panic(err)
+	}
+
+	cld, err := cloudinary.NewFromParams(cldConfig.CloudName, cldConfig.ApiKey, cldConfig.ApiSecret)
+	if err != nil {
+		panic(err)
+	}
+
+	locationRepository := lr.NewLocationRepository(dbConnection, cld)
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService)
 
