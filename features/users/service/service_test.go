@@ -179,6 +179,32 @@ func TestUserServiceLogin(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 
+	t.Run("wrong password", func(t *testing.T) {
+		var caseData = users.User{
+			Email:    "galih@gmail.com",
+			Password: "wrongpassword",
+		}
+
+		var caseResult = users.User{
+			Id:       1,
+			Name:     "Galih",
+			ImageUrl: "default",
+			Password: "test",
+			Role:     "user",
+		}
+
+		repo.On("Login", caseData.Email).Return(&caseResult, nil).Once()
+		enc.On("Compare", caseResult.Password, caseData.Password).Return(errors.New("wrong password")).Once()
+		res, err := srv.Login(caseData.Email, caseData.Password)
+
+		enc.AssertExpectations(t)
+		repo.AssertExpectations(t)
+
+		assert.ErrorContains(t, err, "wrong password")
+		assert.Nil(t, res)
+
+	})
+
 	t.Run("success", func(t *testing.T) {
 		var caseData = users.User{
 			Email:    "galih@gmail.com",
