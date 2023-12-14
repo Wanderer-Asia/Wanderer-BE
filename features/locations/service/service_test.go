@@ -7,6 +7,7 @@ import (
 	"testing"
 	"wanderer/features/locations"
 	"wanderer/features/locations/mocks"
+	"wanderer/helpers/filters"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,9 +18,9 @@ func TestLocationServiceGetAll(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("error from repository", func(t *testing.T) {
-		repo.On("GetAll", ctx).Return(nil, errors.New("some error from repository")).Once()
+		repo.On("GetAll", ctx, filters.Filter{}).Return(nil, errors.New("some error from repository")).Once()
 
-		result, err := srv.GetAll(ctx)
+		result, err := srv.GetAll(ctx, filters.Filter{})
 
 		assert.ErrorContains(t, err, "some error from repository")
 		assert.Nil(t, result)
@@ -38,9 +39,9 @@ func TestLocationServiceGetAll(t *testing.T) {
 				Name: "Korea",
 			},
 		}
-		repo.On("GetAll", ctx).Return(caseResult, nil).Once()
+		repo.On("GetAll", ctx, filters.Filter{}).Return(caseResult, nil).Once()
 
-		result, err := srv.GetAll(ctx)
+		result, err := srv.GetAll(ctx, filters.Filter{})
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(caseResult), len(result))

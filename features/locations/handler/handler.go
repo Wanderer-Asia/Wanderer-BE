@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"wanderer/features/locations"
+	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
@@ -22,8 +23,17 @@ type locationHandler struct {
 func (hdl *locationHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
+		var filter = new(filters.Filter)
 
-		result, err := hdl.locationService.GetAll(c.Request().Context())
+		var pagination = new(filters.Pagination)
+		c.Bind(pagination)
+		filter.Pagination = *pagination
+
+		var search = new(filters.Search)
+		c.Bind(search)
+		filter.Search = *search
+
+		result, err := hdl.locationService.GetAll(c.Request().Context(), *filter)
 		if err != nil {
 			c.Logger().Error(err)
 

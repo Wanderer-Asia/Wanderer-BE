@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"wanderer/features/locations"
+	"wanderer/helpers/filters"
 )
 
 func NewLocationService(repo locations.Repository) locations.Service {
@@ -16,8 +17,8 @@ type locationService struct {
 	repo locations.Repository
 }
 
-func (srv *locationService) GetAll(ctx context.Context) ([]locations.Location, error) {
-	result, err := srv.repo.GetAll(ctx)
+func (srv *locationService) GetAll(ctx context.Context, flt filters.Filter) ([]locations.Location, error) {
+	result, err := srv.repo.GetAll(ctx, flt)
 	if err != nil {
 		return nil, err
 	}

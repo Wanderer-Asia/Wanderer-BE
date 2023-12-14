@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 	locations "wanderer/features/locations"
+	filters "wanderer/helpers/filters"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -42,25 +43,25 @@ func (_m *Service) Delete(ctx context.Context, id uint) error {
 	return r0
 }
 
-// GetAll provides a mock function with given fields: ctx
-func (_m *Service) GetAll(ctx context.Context) ([]locations.Location, error) {
-	ret := _m.Called(ctx)
+// GetAll provides a mock function with given fields: ctx, flt
+func (_m *Service) GetAll(ctx context.Context, flt filters.Filter) ([]locations.Location, error) {
+	ret := _m.Called(ctx, flt)
 
 	var r0 []locations.Location
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]locations.Location, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, filters.Filter) ([]locations.Location, error)); ok {
+		return rf(ctx, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []locations.Location); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, filters.Filter) []locations.Location); ok {
+		r0 = rf(ctx, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]locations.Location)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, filters.Filter) error); ok {
+		r1 = rf(ctx, flt)
 	} else {
 		r1 = ret.Error(1)
 	}

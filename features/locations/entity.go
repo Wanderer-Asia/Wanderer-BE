@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"time"
+	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,14 +29,14 @@ type Handler interface {
 }
 
 type Service interface {
-	GetAll(ctx context.Context) ([]Location, error)
+	GetAll(ctx context.Context, flt filters.Filter) ([]Location, error)
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error
 }
 
 type Repository interface {
-	GetAll(ctx context.Context) ([]Location, error)
+	GetAll(ctx context.Context, flt filters.Filter) ([]Location, error)
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error

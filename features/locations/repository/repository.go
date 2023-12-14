@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"wanderer/features/locations"
+	"wanderer/helpers/filters"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -22,10 +23,22 @@ type locationRepository struct {
 	cld     *cloudinary.Cloudinary
 }
 
-func (repo *locationRepository) GetAll(ctx context.Context) ([]locations.Location, error) {
+func (repo *locationRepository) GetAll(ctx context.Context, flt filters.Filter) ([]locations.Location, error) {
 	var data []Location
-	if err := repo.mysqlDB.Find(&data).Error; err != nil {
-		return nil, err
+
+	qry := repo.mysqlDB
+
+	if flt.Search.Keyword != "" {
+		qry = qry.Where("name like ?", "%"+flt.Search.Keyword+"%")
+	}
+
+	if flt.Pagination.Limit != 0 {
+		qry = qry.Limit(flt.Pagination.Limit)
+	}
+
+	qry = qry.Find(&data)
+	if qry.Error != nil {
+		return nil, qry.Error
 	}
 
 	var result []locations.Location
