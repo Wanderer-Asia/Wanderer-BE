@@ -481,13 +481,15 @@ paths:
       responses:
         "201":
           description: OK
-  /bookings/{id}:
+  /bookings/{code}:
     get:
       tags:
         - Booking
       summary: "Detail Booking"
       security:
         - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingCode"
       responses:
         "200":
           description: OK
@@ -497,6 +499,8 @@ paths:
       summary: "Cancel Booking"
       security:
         - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingCode"
       responses:
         "200":
           description: OK
@@ -675,7 +679,7 @@ components:
     booking:
       type: object
       properties:
-        booking_id:
+        booking_code:
           type: integer
         tour:
           $ref: "#/components/schemas/tour"      
@@ -1592,6 +1596,14 @@ components:
         type: boolean
         example: false
 
+    bookingCode:
+      name: "code"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 12312399126
+    
   requestBodies:
     login:
       content:
