@@ -78,6 +78,10 @@ func (mod *User) ToEntity() *users.User {
 		ent.ImageUrl = mod.Image
 	}
 
+	if mod.Role != "" {
+		ent.Role = mod.Role
+	}
+
 	if !mod.CreatedAt.IsZero() {
 		ent.CreatedAt = mod.CreatedAt
 	}
