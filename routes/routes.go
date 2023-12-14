@@ -29,5 +29,7 @@ func (router *Routes) UserRouter() {
 
 func (router *Routes) AirlineRouter() {
 	router.Server.POST("/airlines", router.AirlineHandler.Create(), echojwt.JWT([]byte("altamantul")))
-	router.Server.GET("/airlines", router.AirlineHandler.GetAll(), echojwt.JWT([]byte("altamantul")))
+	router.Server.GET("/airlines", router.AirlineHandler.GetAll())
+	router.Server.PUT("/airlines/:id", router.AirlineHandler.Update(), echojwt.JWT([]byte("altamantul")))
+	router.Server.DELETE("airlines/:id", router.AirlineHandler.Delete(), echojwt.JWT([]byte("altamantul")))
 }

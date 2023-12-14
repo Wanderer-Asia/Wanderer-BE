@@ -37,9 +37,25 @@ func (srv *airlineService) GetAll() ([]airlines.Airline, error) {
 }
 
 func (srv *airlineService) Update(id uint, updateAirline airlines.Airline) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: invalid airline id")
+	}
+
+	if err := srv.repo.Update(id, updateAirline); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (srv *airlineService) Delete(id uint) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: invalid airline id")
+	}
+
+	if err := srv.repo.Delete(id); err != nil {
+		return err
+	}
+
+	return nil
 }

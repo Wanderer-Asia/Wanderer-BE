@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/features/airlines"
 
@@ -30,7 +31,7 @@ func (hdl *airlineHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
-		file, _ := c.FormFile("image")
+		file, _ := c.FormFile("logo")
 		if file != nil {
 			src, err := file.Open()
 			if err != nil {
@@ -92,9 +93,81 @@ func (hdl *airlineHandler) GetAll() echo.HandlerFunc {
 }
 
 func (hdl *airlineHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(CreateRequest)
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "ivalid airline id"
+		}
+
+		if c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "incorect input"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		file, _ := c.FormFile("logo")
+		if file != nil {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			request.Image = src
+		}
+
+		if err := hdl.airlineService.Update(uint(id), *request.ToEntity()); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "airline not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "update airline success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *airlineHandler) Delete() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "ivalid airline id"
+		}
+
+		if err := hdl.airlineService.Delete(uint(id)); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "airline not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "delete airline success"
+		return c.JSON(http.StatusOK, response)
+	}
 }

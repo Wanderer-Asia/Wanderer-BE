@@ -5,7 +5,7 @@ import "wanderer/features/airlines"
 type GetAllResponse struct {
 	Id    uint   `json:"id,omitempty"`
 	Name  string `json:"name,omitempty"`
-	Image string `json:"image,omitempty"`
+	Image string `json:"logo,omitempty"`
 }
 
 func (res *GetAllResponse) FromEntity(ent airlines.Airline) {

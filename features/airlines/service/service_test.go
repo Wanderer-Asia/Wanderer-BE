@@ -95,3 +95,85 @@ func TestAirlineServiceGetAll(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestAirlineServiceUpdate(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = service.NewAirlineService(repo)
+
+	t.Run("invalid airline id", func(t *testing.T) {
+		var caseData = airlines.Airline{
+			Name:     "",
+			ImageUrl: "test",
+		}
+
+		err := srv.Update(uint(0), caseData)
+
+		assert.ErrorContains(t, err, "id")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		var caseData = airlines.Airline{
+			Name:     "Test Air",
+			ImageUrl: "test",
+		}
+
+		repo.On("Update", uint(1), caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		var caseData = airlines.Airline{
+			Name:     "Test Air",
+			ImageUrl: "test",
+		}
+
+		repo.On("Update", uint(1), caseData).Return(nil).Once()
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestAirlineServiceDelete(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = service.NewAirlineService(repo)
+
+	t.Run("invalid airline id", func(t *testing.T) {
+		var id = uint(0)
+
+		err := srv.Delete(id)
+
+		assert.ErrorContains(t, err, "airline id")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		var id = uint(1)
+
+		repo.On("Delete", id).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Delete(id)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		var id = uint(1)
+
+		repo.On("Delete", id).Return(nil).Once()
+
+		err := srv.Delete(1)
+		assert.Nil(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}
