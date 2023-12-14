@@ -10,6 +10,10 @@ import (
 	ur "wanderer/features/users/repository"
 	us "wanderer/features/users/service"
 
+	ah "wanderer/features/airlines/handler"
+	ar "wanderer/features/airlines/repository"
+	as "wanderer/features/airlines/service"
+
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -46,13 +50,18 @@ func main() {
 	userService := us.NewUserService(userRepository, enc)
 	userHandler := uh.NewUserHandler(userService)
 
+	airlineRepository := ar.NewAirlineRepository(dbConnection, cld)
+	airlineService := as.NewAirlineService(airlineRepository)
+	airlineHandler := ah.NewAirlineHandler(airlineService)
+
 	app := echo.New()
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
 
 	route := routes.Routes{
-		Server:      app,
-		UserHandler: userHandler,
+		Server:         app,
+		UserHandler:    userHandler,
+		AirlineHandler: airlineHandler,
 	}
 
 	route.InitRouter()
