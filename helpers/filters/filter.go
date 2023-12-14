@@ -1,5 +1,6 @@
 package filters
 
 type Filter struct {
-	Search Search
+	Search     Search
+	Pagination Pagination
 }

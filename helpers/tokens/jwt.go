@@ -7,7 +7,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(idUser uint) (string, error) {
+func GenerateJWT(secret string, idUser uint) (string, error) {
+	if secret == "" {
+		return "", errors.New("invalid token secret")
+	}
+
 	if idUser == 0 {
 		return "", errors.New("invalid user id")
 	}
@@ -25,7 +29,15 @@ func GenerateJWT(idUser uint) (string, error) {
 	return strToken, nil
 }
 
-func ExtractToken(t *jwt.Token) (uint, error) {
+func ExtractToken(secret string, t *jwt.Token) (uint, error) {
+	if secret == "" {
+		return 0, errors.New("invalid token secret")
+	}
+
+	if t == nil {
+		return 0, errors.New("invalid jwt token")
+	}
+
 	var userID uint
 	expiredTime, err := t.Claims.GetExpirationTime()
 	if err != nil {
