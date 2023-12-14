@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"wanderer/features/airlines"
+	"wanderer/helpers/filters"
 )
 
 func NewAirlineService(repo airlines.Repository) airlines.Service {
@@ -27,8 +28,8 @@ func (srv *airlineService) Create(newAirline airlines.Airline) error {
 	return nil
 }
 
-func (srv *airlineService) GetAll() ([]airlines.Airline, error) {
-	result, err := srv.repo.GetAll()
+func (srv *airlineService) GetAll(flt filters.Filter) ([]airlines.Airline, error) {
+	result, err := srv.repo.GetAll(flt)
 	if err != nil {
 		return nil, err
 	}

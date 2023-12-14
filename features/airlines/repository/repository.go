@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"wanderer/features/airlines"
+	"wanderer/helpers/filters"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -52,10 +53,17 @@ func (repo *airlineRepository) Create(newAirline airlines.Airline) error {
 	return nil
 }
 
-func (repo *airlineRepository) GetAll() ([]airlines.Airline, error) {
+func (repo *airlineRepository) GetAll(flt filters.Filter) ([]airlines.Airline, error) {
 	var dataAirline []Airline
-	if err := repo.mysqlDB.Find(&dataAirline).Error; err != nil {
-		return nil, err
+	qry := repo.mysqlDB
+
+	if flt.Search.Keyword != "" {
+		qry = qry.Where("name like ?", "%"+flt.Search.Keyword+"%")
+	}
+
+	qry = qry.Find(&dataAirline)
+	if qry.Error != nil {
+		return nil, qry.Error
 	}
 
 	var result []airlines.Airline

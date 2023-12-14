@@ -4,6 +4,7 @@ package mocks
 
 import (
 	airlines "wanderer/features/airlines"
+	filters "wanderer/helpers/filters"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -41,25 +42,25 @@ func (_m *Repository) Delete(id uint) error {
 	return r0
 }
 
-// GetAll provides a mock function with given fields:
-func (_m *Repository) GetAll() ([]airlines.Airline, error) {
-	ret := _m.Called()
+// GetAll provides a mock function with given fields: flt
+func (_m *Repository) GetAll(flt filters.Filter) ([]airlines.Airline, error) {
+	ret := _m.Called(flt)
 
 	var r0 []airlines.Airline
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]airlines.Airline, error)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(filters.Filter) ([]airlines.Airline, error)); ok {
+		return rf(flt)
 	}
-	if rf, ok := ret.Get(0).(func() []airlines.Airline); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(filters.Filter) []airlines.Airline); ok {
+		r0 = rf(flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]airlines.Airline)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(filters.Filter) error); ok {
+		r1 = rf(flt)
 	} else {
 		r1 = ret.Error(1)
 	}

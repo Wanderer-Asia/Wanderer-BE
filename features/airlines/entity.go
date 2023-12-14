@@ -3,6 +3,7 @@ package airlines
 import (
 	"io"
 	"time"
+	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,14 +29,14 @@ type Handler interface {
 
 type Service interface {
 	Create(newAirline Airline) error
-	GetAll() ([]Airline, error)
+	GetAll(flt filters.Filter) ([]Airline, error)
 	Update(id uint, updateAirline Airline) error
 	Delete(id uint) error
 }
 
 type Repository interface {
 	Create(newAirline Airline) error
-	GetAll() ([]Airline, error)
+	GetAll(flt filters.Filter) ([]Airline, error)
 	Update(id uint, updateAirline Airline) error
 	Delete(id uint) error
 }

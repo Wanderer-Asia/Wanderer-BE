@@ -6,6 +6,7 @@ import (
 	"wanderer/features/airlines"
 	"wanderer/features/airlines/mocks"
 	"wanderer/features/airlines/service"
+	"wanderer/helpers/filters"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -61,9 +62,9 @@ func TestAirlineServiceGetAll(t *testing.T) {
 	var srv = service.NewAirlineService(repo)
 
 	t.Run("error from repository", func(t *testing.T) {
-		repo.On("GetAll").Return(nil, errors.New("some error from repository")).Once()
+		repo.On("GetAll", filters.Filter{}).Return(nil, errors.New("some error from repository")).Once()
 
-		result, err := srv.GetAll()
+		result, err := srv.GetAll(filters.Filter{})
 
 		assert.ErrorContains(t, err, "some error from repository")
 		assert.Nil(t, result)
@@ -85,9 +86,9 @@ func TestAirlineServiceGetAll(t *testing.T) {
 			},
 		}
 
-		repo.On("GetAll").Return(caseData, nil).Once()
+		repo.On("GetAll", filters.Filter{}).Return(caseData, nil).Once()
 
-		result, err := srv.GetAll()
+		result, err := srv.GetAll(filters.Filter{})
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(caseData), len(result))

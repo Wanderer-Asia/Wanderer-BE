@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"wanderer/features/airlines"
+	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
@@ -69,8 +70,13 @@ func (hdl *airlineHandler) Create() echo.HandlerFunc {
 func (hdl *airlineHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
+		var filter = new(filters.Filter)
 
-		result, err := hdl.airlineService.GetAll()
+		var search = new(filters.Search)
+		c.Bind(search)
+		filter.Search = *search
+
+		result, err := hdl.airlineService.GetAll(*filter)
 		if err != nil {
 			c.Logger().Error(err)
 
