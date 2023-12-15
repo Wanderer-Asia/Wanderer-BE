@@ -39,7 +39,7 @@ func (repo *facilityRepository) GetAll(flt filters.Filter) ([]facilities.Facilit
 	qry := repo.mysqlDB
 
 	if flt.Search.Keyword != "" {
-		qry = qry.Where("name LIKE ?", "%"+flt.Search.Keyword+"%")
+		qry = qry.Where("name like ?", "%"+flt.Search.Keyword+"%")
 	}
 
 	qry = qry.Find(&dataFacilities)
@@ -56,7 +56,14 @@ func (repo *facilityRepository) GetAll(flt filters.Filter) ([]facilities.Facilit
 }
 
 func (repo *facilityRepository) Update(id uint, updateFacility facilities.Facility) error {
-	panic("unimplemented")
+	var model = new(Facility)
+	model.FromEntity(updateFacility)
+
+	if err := repo.mysqlDB.Where(&Facility{Id: id}).Updates(model).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *facilityRepository) Delete(id uint) error {

@@ -38,7 +38,19 @@ func (srv *facilityService) GetAll(flt filters.Filter) ([]facilities.Facility, e
 }
 
 func (srv *facilityService) Update(id uint, updateFacility facilities.Facility) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: ivalid facility id")
+	}
+
+	if updateFacility.Name == "" {
+		return errors.New("validate: name can't be empty")
+	}
+
+	if err := srv.repo.Update(id, updateFacility); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (srv *facilityService) Delete(id uint) error {

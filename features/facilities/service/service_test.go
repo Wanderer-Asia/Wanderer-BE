@@ -95,3 +95,56 @@ func TestFacilityServiceGetAll(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestFacilityServiceUpdate(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = service.NewFacilityService(repo)
+
+	t.Run("invalid name", func(t *testing.T) {
+		var caseData = facilities.Facility{
+			Name: "",
+		}
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.ErrorContains(t, err, "name")
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		var caseData = facilities.Facility{
+			Name: "test",
+		}
+
+		err := srv.Update(uint(0), caseData)
+
+		assert.ErrorContains(t, err, "id")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		var caseData = facilities.Facility{
+			Name: "Test Facility",
+		}
+
+		repo.On("Update", uint(1), caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		var caseData = facilities.Facility{
+			Name: "Test Facility",
+		}
+
+		repo.On("Update", uint(1), caseData).Return(nil).Once()
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

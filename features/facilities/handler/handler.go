@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/features/facilities"
 	"wanderer/helpers/filters"
@@ -82,7 +83,44 @@ func (hdl *facilityHandler) GetAll() echo.HandlerFunc {
 }
 
 func (hdl *facilityHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(CreateRequest)
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid facility id"
+		}
+
+		if c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "incorrect input"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := hdl.facilityService.Update(uint(id), *request.ToEntity()); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "facility not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "update facility success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *facilityHandler) Delete() echo.HandlerFunc {
