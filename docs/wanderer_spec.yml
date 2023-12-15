@@ -997,47 +997,58 @@ components:
             data: [
               {
                 id: 1,
-                name: "Batik Air"
+                name: "Batik Air",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 2,
-                name: "Citilink"
+                name: "Citilink",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 3,
-                name: "Garuda Indonesia"
+                name: "Garuda Indonesia",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 4,
-                name: "Indonesia AirAsia"
+                name: "Indonesia AirAsia",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 5,
-                name: "Lion Air"
+                name: "Lion Air",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 6,
-                name: "Nam Air"
+                name: "Nam Air",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 7,
-                name: "Pelita Air"
+                name: "Pelita Air",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 8,
-                name: "Sriwijaya Air"
+                name: "Sriwijaya Air",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 9,
-                name: "Super Air Jet"
+                name: "Super Air Jet",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 10,
-                name: "TransNusa"
+                name: "TransNusa",
+                logo: "https://placehold.co/200x200/webp"
               },
               {
                 id: 11,
-                name: "Wings Air"
+                name: "Wings Air",
+                logo: "https://placehold.co/200x200/webp"
               }
             ]
     "airlineCreate_201":
