@@ -16,7 +16,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
-        run: go mod tidy
+        run: go get .
       - 
         name: unit test
         run: go test ./...
