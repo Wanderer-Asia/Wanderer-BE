@@ -57,7 +57,7 @@ func main() {
 
 	userRepository := ur.NewUserRepository(dbConnection, cld)
 	userService := us.NewUserService(userRepository, enc)
-	userHandler := uh.NewUserHandler(userService)
+	userHandler := uh.NewUserHandler(userService, *jwtConfig)
 
 	airlineRepository := ar.NewAirlineRepository(dbConnection, cld)
 	airlineService := as.NewAirlineService(airlineRepository)
@@ -74,8 +74,8 @@ func main() {
 	route := routes.Routes{
 		JWTKey:          jwtConfig.Secret,
 		Server:          app,
-		UserHandler:    userHandler,
-		AirlineHandler: airlineHandler,
+		UserHandler:     userHandler,
+		AirlineHandler:  airlineHandler,
 		LocationHandler: locationHandler,
 	}
 
