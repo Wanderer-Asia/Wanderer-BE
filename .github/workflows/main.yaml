@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - "main"
-
+  pull_request:
+    branches:
+      - "dev"
+      
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,5 +49,5 @@ jobs:
             docker stop ${{ secrets.CONTAINER_APP_NAME }}
             docker rm ${{ secrets.CONTAINER_APP_NAME }}
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}
-            docker run --name ${{ secrets.CONTAINER_APP_NAME }} -d -p 80:${{ secrets.CONTAINER_APP_PORT }} -p 443:${{ secrets.CONTAINER_APP_PORT }} --link ${{ secrets.CONTAINER_DB_NAME }} -e DB_HOST=${{ secrets.ENV_DB_HOST }} -e DB_PORT=${{ secrets.ENV_DB_PORT }} -e DB_USERNAME=${{ secrets.ENV_DB_USER }} -e DB_PASSWORD=${{ secrets.ENV_DB_PASS }} -e DB_DATABASE=${{ secrets.ENV_DB_DATABASE }} -e CLOUDINARY_NAME=${{ secrets.ENV_CLOUDINARY_NAME }} -e CLOUDINARY_KEY=${{ secrets.ENV_CLOUDINARY_KEY }} -e CLOUDINARY_SECRET=${{ secrets.ENV_CLOUDINARY_SECRET }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}
+            docker run --name ${{ secrets.CONTAINER_APP_NAME }} -d -p 80:${{ secrets.CONTAINER_APP_PORT }} -p 443:${{ secrets.CONTAINER_APP_PORT }} --link ${{ secrets.CONTAINER_DB_NAME }} -e DB_HOST=${{ secrets.ENV_DB_HOST }} -e DB_PORT=${{ secrets.ENV_DB_PORT }} -e DB_USERNAME=${{ secrets.ENV_DB_USER }} -e DB_PASSWORD=${{ secrets.ENV_DB_PASS }} -e DB_DATABASE=${{ secrets.ENV_DB_DATABASE }} -e CLOUDINARY_NAME=${{ secrets.ENV_CLOUDINARY_NAME }} -e CLOUDINARY_KEY=${{ secrets.ENV_CLOUDINARY_KEY }} -e CLOUDINARY_SECRET=${{ secrets.ENV_CLOUDINARY_SECRET }} -e JWT_SECRET=${{ secrets.ENV_JWT_SECRET }} -e MIDTRANS_KEY=${{ secrets.ENV_MIDTRANS_KEY }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}
         
