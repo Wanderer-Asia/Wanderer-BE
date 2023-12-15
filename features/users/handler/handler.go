@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strings"
+	"wanderer/config"
 	"wanderer/features/users"
 	"wanderer/helpers/tokens"
 
@@ -10,14 +11,16 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func NewUserHandler(userService users.Service) users.Handler {
+func NewUserHandler(userService users.Service, jwtConfig config.JWT) users.Handler {
 	return &userHandler{
 		userService: userService,
+		jwtConfig:   jwtConfig,
 	}
 }
 
 type userHandler struct {
 	userService users.Service
+	jwtConfig   config.JWT
 }
 
 func (hdl *userHandler) Register() echo.HandlerFunc {
@@ -93,7 +96,7 @@ func (hdl *userHandler) Login() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		strToken, err := tokens.GenerateJWT(result.Id)
+		strToken, err := tokens.GenerateJWT(hdl.jwtConfig.Secret, result.Id)
 		if err != nil {
 			return err
 		}
@@ -119,7 +122,7 @@ func (hdl *userHandler) Update() echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, response)
 		}
 
-		userId, err := tokens.ExtractToken(token.(*jwt.Token))
+		userId, err := tokens.ExtractToken(hdl.jwtConfig.Secret, token.(*jwt.Token))
 		if err != nil {
 			c.Logger().Error(err)
 
@@ -177,7 +180,7 @@ func (hdl *userHandler) Delete() echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, response)
 		}
 
-		userId, err := tokens.ExtractToken(token.(*jwt.Token))
+		userId, err := tokens.ExtractToken(hdl.jwtConfig.Secret, token.(*jwt.Token))
 		if err != nil {
 			c.Logger().Error(err)
 
