@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"wanderer/features/facilities"
+	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
 )
@@ -50,7 +51,34 @@ func (hdl *facilityHandler) Create() echo.HandlerFunc {
 }
 
 func (hdl *facilityHandler) GetAll() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var filter = new(filters.Filter)
+
+		var search = new(filters.Search)
+		c.Bind(search)
+		filter.Search = *search
+
+		result, err := hdl.facilityService.GetAll(*filter)
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data []GetAllResponse
+		for _, v := range result {
+			tmpFacility := new(GetAllResponse)
+			tmpFacility.FromEntity(v)
+
+			data = append(data, *tmpFacility)
+		}
+
+		response["message"] = "get all facility success"
+		response["data"] = data
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *facilityHandler) Update() echo.HandlerFunc {

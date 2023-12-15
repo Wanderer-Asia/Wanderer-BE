@@ -49,4 +49,5 @@ func (router *Routes) LocationRouter() {
 
 func (router *Routes) FacilityRouter() {
 	router.Server.POST("/facilities", router.FacilityHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/facilities", router.FacilityHandler.GetAll())
 }

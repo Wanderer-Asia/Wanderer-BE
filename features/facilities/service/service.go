@@ -29,7 +29,12 @@ func (srv *facilityService) Create(newfacility facilities.Facility) error {
 }
 
 func (srv *facilityService) GetAll(flt filters.Filter) ([]facilities.Facility, error) {
-	panic("unimplemented")
+	result, err := srv.repo.GetAll(flt)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (srv *facilityService) Update(id uint, updateFacility facilities.Facility) error {
