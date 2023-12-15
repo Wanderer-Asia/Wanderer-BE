@@ -37,9 +37,14 @@ func (hdl *facilityHandler) Create() echo.HandlerFunc {
 		if err := hdl.facilityService.Create(*data); err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "validate") {
+			if strings.Contains(err.Error(), "Duplicate") {
 				response["message"] = "this facility is already in the system"
 				return c.JSON(http.StatusConflict, response)
+			}
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
 			}
 
 			response["message"] = "internal server error"
