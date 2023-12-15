@@ -124,5 +124,31 @@ func (hdl *facilityHandler) Update() echo.HandlerFunc {
 }
 
 func (hdl *facilityHandler) Delete() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid facility id"
+		}
+
+		if err := hdl.facilityService.Delete(uint(id)); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "facility not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "delete facility success"
+		return c.JSON(http.StatusOK, response)
+
+	}
+
 }

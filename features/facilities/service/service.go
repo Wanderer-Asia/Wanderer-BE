@@ -54,5 +54,13 @@ func (srv *facilityService) Update(id uint, updateFacility facilities.Facility) 
 }
 
 func (srv *facilityService) Delete(id uint) error {
-	panic("unimplemented")
+	if id == 0 {
+		return errors.New("validate: ivalid facility id")
+	}
+
+	if err := srv.repo.Delete(id); err != nil {
+		return err
+	}
+
+	return nil
 }

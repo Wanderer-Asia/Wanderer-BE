@@ -148,3 +148,37 @@ func TestFacilityServiceUpdate(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestFacilityServiceDelete(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = service.NewFacilityService(repo)
+
+	t.Run("invalid id", func(t *testing.T) {
+
+		err := srv.Delete(uint(0))
+
+		assert.ErrorContains(t, err, "id")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+
+		repo.On("Delete", uint(1)).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Delete(uint(1))
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+
+		repo.On("Delete", uint(1)).Return(nil).Once()
+
+		err := srv.Delete(uint(1))
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

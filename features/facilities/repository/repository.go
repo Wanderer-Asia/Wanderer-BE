@@ -67,5 +67,14 @@ func (repo *facilityRepository) Update(id uint, updateFacility facilities.Facili
 }
 
 func (repo *facilityRepository) Delete(id uint) error {
-	panic("unimplemented")
+	deleteQuery := repo.mysqlDB.Delete(&Facility{Id: id})
+	if deleteQuery.Error != nil {
+		return deleteQuery.Error
+	}
+
+	if deleteQuery.RowsAffected == 0 {
+		return errors.New("not found")
+	}
+
+	return nil
 }
