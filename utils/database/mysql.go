@@ -3,10 +3,11 @@ package database
 import (
 	"fmt"
 	"wanderer/config"
-  
+
 	ar "wanderer/features/airlines/repository"
-	ur "wanderer/features/users/repository"
+	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
+	ur "wanderer/features/users/repository"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,6 +27,7 @@ func MysqlMigrate(db *gorm.DB) error {
 		&ur.User{},
 		&ar.Airline{},
 		&lr.Location{},
+		&fr.Facility{},
 	)
 
 	if err != nil {

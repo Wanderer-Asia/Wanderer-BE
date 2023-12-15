@@ -2,8 +2,9 @@ package routes
 
 import (
 	"wanderer/features/airlines"
-	"wanderer/features/users"
+	"wanderer/features/facilities"
 	"wanderer/features/locations"
+	"wanderer/features/users"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -12,15 +13,17 @@ import (
 type Routes struct {
 	JWTKey          string
 	Server          *echo.Echo
-	UserHandler    users.Handler
-	AirlineHandler airlines.Handler
+	UserHandler     users.Handler
+	AirlineHandler  airlines.Handler
 	LocationHandler locations.Handler
+	FacilityHandler facilities.Handler
 }
 
 func (router Routes) InitRouter() {
 	router.UserRouter()
 	router.AirlineRouter()
 	router.LocationRouter()
+	router.FacilityRouter()
 }
 
 func (router *Routes) UserRouter() {
@@ -42,4 +45,8 @@ func (router *Routes) LocationRouter() {
 	router.Server.POST("/locations", router.LocationHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.PUT("/locations/:id", router.LocationHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/locations/:id", router.LocationHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+}
+
+func (router *Routes) FacilityRouter() {
+	router.Server.POST("/facilities", router.FacilityHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 }
