@@ -18,6 +18,10 @@ import (
 	lr "wanderer/features/locations/repository"
 	ls "wanderer/features/locations/service"
 
+	fh "wanderer/features/facilities/handler"
+	fr "wanderer/features/facilities/repository"
+	fs "wanderer/features/facilities/service"
+
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -67,6 +71,10 @@ func main() {
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService)
 
+	facilityRepository := fr.NewFacilityRepository(dbConnection)
+	facilityService := fs.NewFacilityService(facilityRepository)
+	facilityHandler := fh.NewFacilityHandler(facilityService)
+
 	app := echo.New()
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
@@ -77,6 +85,7 @@ func main() {
 		UserHandler:     userHandler,
 		AirlineHandler:  airlineHandler,
 		LocationHandler: locationHandler,
+		FacilityHandler: facilityHandler,
 	}
 
 	route.InitRouter()
