@@ -534,6 +534,25 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
+  /reports:
+    get:
+      tags:
+        - Report
+      summary: "Dashboard Report"
+      security:
+        - JWT: []
+      responses:
+        "200":
+          $ref: "#/components/responses/reportGet_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
 components:
   schemas:
     user:
@@ -559,14 +578,14 @@ components:
             - admin
         tour_count:
           type: integer
-        tours:
-          type: array
-          items:
-            $ref: "#/components/schemas/tour"
         review_count:
           type: integer
+        bookings:
+          type: array
+          items:
+            $ref: "#/components/schemas/booking"
         token:
-          type: string 
+          type: string
     airline:
       type: object
       properties:
@@ -598,8 +617,15 @@ components:
           type: integer
         name:
           type: string
-        status:
-          type: boolean
+    itinerary:
+      type: object
+      properties:
+        itinerary_id:
+          type: integer
+        location:
+          type: string
+        description:
+          type: string
     tour:
       type: object
       properties:
@@ -642,33 +668,33 @@ components:
             type: string
             format: binary
         location:
-          type: object
-          properties:
-            location_id:
-              type: integer
-            name: 
-              type: string
-            image:
-              type: string
-              format: binary
+          $ref: "#/components/schemas/location"
+        airline:
+          $ref: "#/components/schemas/airline"
         itinerary:
           type: array
           items:
-            type: object
-            properties:
-              itinerary_id:
-                type: integer
-              location:
-                type: string
-              description:
-                type: string
-        include_exclude:
-          type: array
-          items:
-            $ref: "#/components/schemas/facility"
+            $ref: "#/components/schemas/itinerary"
+        facility:
+          type: object
+          properties:
+            include:
+              type: array
+              items:
+                $ref: "#/components/schemas/facility"
+            exclude:
+              type: array
+              items:
+                $ref: "#/components/schemas/facility"
         status:
           type: boolean
           description: tour status open or close
+        review_count:
+          type: integer
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/review"
     review:
       type: object
       properties:
@@ -685,6 +711,9 @@ components:
           format: float
           minimum: 0
           maximum: 5
+        created_at:
+          type: string
+          format: date-time
 
     booking_detail:
       type: object
@@ -714,6 +743,8 @@ components:
           $ref: "#/components/schemas/tour"
         user:
           $ref: "#/components/schemas/user"
+        detail_count:
+          type: integer
         detail:
           type: array
           items:
@@ -734,7 +765,13 @@ components:
             - "pending"
             - "approved"
             - "cancel"
+            - "refund request"
+            - "refund approved"
+            - "refund complete"
         booked_at:
+          type: string
+          format: date-time
+        paid_at:
           type: string
           format: date-time
         payment_method:
@@ -745,9 +782,15 @@ components:
             - "bri_va"
             - "bni_va"
             - "permata_va"
-        paid_at:
+        payment_expired:
           type: string
           format: date-time
+        code_bill:
+          type: integer
+        key_bill:
+          type: integer
+        va_number:
+          type: integer
 
     apiResponse:
       type: object
@@ -940,27 +983,23 @@ components:
             message: "get profile user success"
             data: 
               user_id: 1
-              name: "Galih Prayoga"
+              fullname: "Galih Prayoga"
               email: "galih@gmail.com"
               image: "https://placehold.co/400x400/webp"
               tour_count: 2
-              tours: [
-                {
-                  tour_id: 1,
-                  name: "Galih",
-                  quantity: 2,
-                  booking_code: 12345678,
-                  status: "success"
-                },
-                {
-                  tour_id: 2,
-                  name: "Galih",
-                  quantity: 1,
-                  booking_code: 412376248,
-                  status: "pending"
-                },
-              ]
               review_count: 1
+              bookings: [
+                {
+                  booking_code: 12345678,
+                  detail_count: 2,
+                  status: "pending",
+                  tour: {
+                    tour_id: 1,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    status: 1
+                  },
+                }
+              ]
     "userUpdate_200":
       description: "update user success"
       content:
@@ -1011,57 +1050,57 @@ components:
             message: "get all airline success"
             data: [
               {
-                id: 1,
+                airline_id: 1,
                 name: "Batik Air",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 2,
+                airline_id: 2,
                 name: "Citilink",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 3,
+                airline_id: 3,
                 name: "Garuda Indonesia",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 4,
+                airline_id: 4,
                 name: "Indonesia AirAsia",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 5,
+                airline_id: 5,
                 name: "Lion Air",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 6,
+                airline_id: 6,
                 name: "Nam Air",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 7,
+                airline_id: 7,
                 name: "Pelita Air",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 8,
+                airline_id: 8,
                 name: "Sriwijaya Air",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 9,
+                airline_id: 9,
                 name: "Super Air Jet",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 10,
+                airline_id: 10,
                 name: "TransNusa",
                 logo: "https://placehold.co/200x200/webp"
               },
               {
-                id: 11,
+                airline_id: 11,
                 name: "Wings Air",
                 logo: "https://placehold.co/200x200/webp"
               }
@@ -1130,37 +1169,37 @@ components:
             message: "get all location success"
             data: [
               {
-                id: 1,
+                location_id: 1,
                 name: "Japan",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 2,
+                location_id: 2,
                 name: "Korea",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 3,
+                location_id: 3,
                 name: "Turkey",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 4,
+                location_id: 4,
                 name: "United Kingdom",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 5,
+                location_id: 5,
                 name: "United State",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 6,
+                location_id: 6,
                 name: "Dubai",
                 image: "https://placehold.co/150x150/webp"
               },
               {
-                id: 7,
+                location_id: 7,
                 name: "Mesir",
                 image: "https://placehold.co/150x150/webp"
               }
@@ -1271,23 +1310,23 @@ components:
             message: "get all facility success"
             data: [
               {
-                id: 1,
+                facility_id: 1,
                 name: "Flight",
               },
               {
-                id: 2,
+                facility_id: 2,
                 name: "Visa",
               },
               {
-                id: 3,
+                facility_id: 3,
                 name: "Tour Guide",
               },
               {
-                id: 4,
+                facility_id: 4,
                 name: "Hotel",
               },
               {
-                id: 5,
+                facility_id: 5,
                 name: "Snack",
               }
             ]
@@ -1574,17 +1613,18 @@ components:
           example:
             message: "get detail booking success"
             data:
+              booking_code: 82312399126
               detail_count: 2
-              paid_at:
+              status: "pending"
+              payment_method: "mandiri_va"
+              total: 22505000
+              code_bill: 70012
+              key_bill: 293751669219
+              payment_expired: "2023-12-05T06:57:29.370Z"
               tour:
                 tour_id: 1
                 title: "Jepang Winter Golden Route & Mount Fuji"
                 description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-                price: 30000000
-                discount: 2500000
-                admin_fee: 5000
-                quota: 25
-                available: 25
                 start: "2023-12-05T06:57:29.370Z"
                 finish: "2023-12-10T06:57:29.370Z"
                 rating: 4.8
@@ -1633,35 +1673,35 @@ components:
                   total: 22505000
                   code_bill: 70012
                   key_bill: 293751669219
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
             "bca virtual account":
               value:
                 message: "create booking success"
                 data:
                   total: 22505000
                   va_number: 85977839865
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
             "bri virtual account":
               value:
                 message: "create booking success"
                 data:
                   total: 22505000
                   va_number: 859779590666198474
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
             "bni virtual account":
               value:
                 message: "create booking success"
                 data:
                   total: 22505000
                   va_number: 9888597781306417
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
             "permata virtual account":
               value:
                 message: "create booking success"
                 data:
                   total: 22505000
                   va_number: 8590039559874267
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
     "bookingCreate_400":
       description: "bad request"
       content:
@@ -1722,7 +1762,7 @@ components:
                 data:
                   total: 22505000
                   va_number: 85977839865
-                  peyment_expired: "2023-12-05T06:57:29.370Z"
+                  payment_expired: "2023-12-05T06:57:29.370Z"
     "bookingUpdate_400":
       description: "bad request"
       content:
@@ -1753,6 +1793,114 @@ components:
               value:
                 message: "booking not found"
 
+    "reportGet_200":
+      description: "get report success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get report success"
+            data:
+              total_user: 219
+              total_booking: 23
+              total_location: 16
+              total_tour: 7
+              graph_booking: [
+                {
+                  label: "Jan",
+                  total: 80
+                },
+                {
+                  label: "Feb",
+                  total: 40
+                },
+                {
+                  label: "Mar",
+                  total: 20
+                },
+                {
+                  label: "Apr",
+                  total: 50
+                },
+                {
+                  label: "May",
+                  total: 20
+                },
+                {
+                  label: "Jun",
+                  total: 100
+                },
+                {
+                  label: "Jul",
+                  total: 60
+                }
+              ]
+              recent_booking: [
+                {
+                  booking_code: 82312399126,
+                  location: "Japan",
+                  price: 30000000
+                },
+              ]
+              top_tours: [
+                  {
+                    tour_id: 1,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: "Japan"
+                  },
+                  {
+                    tour_id: 2,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: "Japan"
+                  },
+                  {
+                    tour_id: 3,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: "Japan"
+                  },
+                  {
+                    tour_id: 4,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: "Japan"
+                  },
+                  {
+                    tour_id: 5,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: "Japan"
+                  }
+              ]
+
   parameters:
     airlineId:
       name: "id"
@@ -1767,7 +1915,7 @@ components:
       required: false
       schema:
         type: string
-    
+
     locationId:
       name: "id"
       in: path
@@ -1951,7 +2099,7 @@ components:
     
     createUpdateFacility:
       content:
-        multipart/form-data:
+        application/json:
           schema:
             type: object
             required:
