@@ -473,6 +473,27 @@ paths:
           $ref: "#/components/responses/500"
 
   /bookings:
+    get:
+      tags:
+        - Booking
+      summary: "Get All Booking"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingPaginationStart"
+        - $ref: "#/components/parameters/bookingPaginationLimit"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingGetAll_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    
     post:
       tags:
         - Booking
@@ -506,6 +527,8 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/bookingDetail_200"
+        "401":
+          $ref: "#/components/responses/401"
         "404":
           $ref: "#/components/responses/404"
         "405":
@@ -527,6 +550,8 @@ paths:
           $ref: "#/components/responses/bookingUpdate_200"
         "400":
           $ref: "#/components/responses/bookingUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
         "404":
           $ref: "#/components/responses/bookingUpdate_404"
         "405":
@@ -709,7 +734,7 @@ components:
         rating:
           type: number
           format: float
-          minimum: 0
+          minimum: 1
           maximum: 5
         created_at:
           type: string
@@ -1604,6 +1629,45 @@ components:
               value:
                 message: "please fill rating correctly"
     
+    "bookingGetAll_200":
+      description: "get all booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all booking success"
+            pagination:
+              prev: 
+              next: /bookings?limit=5&start=6
+            data: [
+              {
+                booking_code: 82312399126,
+                user: {
+                  name: "Galih"
+                },
+                tour: {
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  start: "2023-12-10T06:57:29.370Z",
+                  finish: "2023-12-10T06:57:29.370Z",
+                },
+                total: 30000000,
+                status: "pending",
+              },
+              {
+                booking_code: 82312399127,
+                user: {
+                  name: "Prayoga"
+                },
+                tour: {
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  start: "2023-12-10T06:57:29.370Z",
+                  finish: "2023-12-10T06:57:29.370Z",
+                },
+                total: 30000000,
+                status: "approved",
+              }
+            ]
     "bookingDetail_200":
       description: "get detail booking success"
       content:
@@ -2005,7 +2069,23 @@ components:
       schema:
         type: integer
         example: 82312399126
-
+    bookingPaginationStart:
+      name: "start"
+      description: "pagination start"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    bookingPaginationLimit:
+      name: "limit"
+      description: "pagination limit"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    
   requestBodies:
     login:
       content:
