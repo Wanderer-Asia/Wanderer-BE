@@ -2,19 +2,21 @@ package repository
 
 import (
 	"time"
+	rr "wanderer/features/reviews/repository"
 	"wanderer/features/users"
 
 	"gorm.io/gorm"
 )
 
 type User struct {
-	Id       uint   `gorm:"column:id; primaryKey;"`
-	Name     string `gorm:"column:name; type:varchar(200);"`
-	Phone    string `gorm:"column:phone; type:varchar(20);"`
-	Email    string `gorm:"column:email; type:varchar(255); unique;"`
-	Password string `gorm:"column:password; type:varchar(72); not null;"`
-	Image    string `gorm:"column:image; type:text;"`
-	Role     string `gorm:"column:role; type:enum('admin', 'user');"`
+	Id       uint        `gorm:"column:id; primaryKey;"`
+	Name     string      `gorm:"column:name; type:varchar(200);"`
+	Phone    string      `gorm:"column:phone; type:varchar(20);"`
+	Email    string      `gorm:"column:email; type:varchar(255); unique;"`
+	Password string      `gorm:"column:password; type:varchar(72); not null;"`
+	Image    string      `gorm:"column:image; type:text;"`
+	Role     string      `gorm:"column:role; type:enum('admin', 'user');"`
+	Reviews  []rr.Review `gorm:"foreignKey:UserId;"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
