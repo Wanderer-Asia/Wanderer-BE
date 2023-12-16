@@ -7,9 +7,10 @@ info:
   contact:
     email: galihp83@gmail.com
 servers:
-  # Added by API Auto Mocking Plugin
   - description: "SwaggerHub API Auto Mocking"
     url: https://virtserver.swaggerhub.com/GALIHP83/Wanderer/1.0.0
+  - description: "Development Server"
+    url: https://api.wanderer.asia
 
 paths:
   /login:
@@ -83,7 +84,7 @@ paths:
         "401":
           $ref: "#/components/responses/401"
         "404":
-          $ref: "#/components/responses/404"
+          $ref: "#/components/responses/userUpdateDelete_404"
         "405":
           $ref: "#/components/responses/405"
         "409":
@@ -102,7 +103,7 @@ paths:
         "401":
           $ref: "#/components/responses/401"
         "404":
-          $ref: "#/components/responses/404"
+          $ref: "#/components/responses/userUpdateDelete_404"
         "405":
           $ref: "#/components/responses/405"
         "500":
@@ -488,12 +489,11 @@ paths:
         "401":
           $ref: "#/components/responses/401"
         "404":
-          $ref: "#/components/responses/404"
+          $ref: "#/components/responses/bookingCreate_404"
         "405":
           $ref: "#/components/responses/405"
         "500":
           $ref: "#/components/responses/500"
-
   /bookings/{code}:
     get:
       tags:
@@ -512,26 +512,28 @@ paths:
           $ref: "#/components/responses/405"
         "500":
           $ref: "#/components/responses/500"
-    delete:
+    patch:
       tags:
         - Booking
-      summary: "Cancel Booking"
+      summary: "Update Booking"
       security:
         - JWT: []
       parameters:
         - $ref: "#/components/parameters/bookingCode"
+      requestBody:
+        $ref: "#/components/requestBodies/updateBooking"
       responses:
         "200":
-          $ref: "#/components/responses/bookingDelete_200"
-        "401":
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/bookingUpdate_200"
+        "400":
+          $ref: "#/components/responses/bookingUpdate_400"
         "404":
-          $ref: "#/components/responses/bookingDelete_404"
+          $ref: "#/components/responses/bookingUpdate_404"
         "405":
           $ref: "#/components/responses/405"
         "500":
           $ref: "#/components/responses/500"
-  
+
 components:
   schemas:
     user:
@@ -694,8 +696,8 @@ components:
         greeting:
           type: string
           enum:
-            - mr
-            - mrs
+            - "mr"
+            - "mrs"
         name:
           type: string
         nationality:
@@ -709,7 +711,7 @@ components:
         booking_code:
           type: integer
         tour:
-          $ref: "#/components/schemas/tour"      
+          $ref: "#/components/schemas/tour"
         user:
           $ref: "#/components/schemas/user"
         detail:
@@ -726,32 +728,26 @@ components:
         total:
           type: number
           format: currency
-        booked_at:
-          type: string
-          format: date-time
-        paid_at:
-          type: string
-          format: date-time
-
-    payment:
-      type: object
-      properties:
-        payment_id:
-          type: integer
-        booking_id:
-          type: integer
-        amount:
-          type: number
-          format: currency
-        expired:
-          type: string
-          format: date-time
         status:
           type: string
           enum:
-            - pending
-            - failed
-            - success
+            - "pending"
+            - "approved"
+            - "cancel"
+        booked_at:
+          type: string
+          format: date-time
+        payment_method:
+          type: string
+          enum:
+            - "mandiri_va"
+            - "bca_va"
+            - "bri_va"
+            - "bni_va"
+            - "permata_va"
+        paid_at:
+          type: string
+          format: date-time
 
     apiResponse:
       type: object
@@ -864,6 +860,9 @@ components:
             "default":
               value:
                 message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
             "invalid email":
               value:
                 message: "please fill email correctly"
@@ -905,6 +904,9 @@ components:
             "default":
               value:
                 message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
             "invalid name":
               value:
                 message: "please fill name correctly"
@@ -985,7 +987,20 @@ components:
             $ref: "#/components/schemas/apiResponse"
           example:
             message: "delete user success"
-    
+    "userUpdateDelete_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "user not found":
+              value:
+                message: "user not found"
+
     "airlineGetAll_200":
       description: "get all airline success"
       content:
@@ -1077,6 +1092,9 @@ components:
             "default":
               value:
                 message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
             "invalid name":
               value:
                 message: "please fill name correctly"
@@ -1173,6 +1191,9 @@ components:
             "default":
               value:
                 message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
             "invalid name":
               value:
                 message: "please fill name correctly"
@@ -1430,6 +1451,16 @@ components:
                   description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
                 },
               ]
+              reviews: [
+                {
+                  user: {
+                    name: "Galih Prayoga",
+                    image: "https://placehold.co/400x400/webp"
+                  },
+                  text: "best tour",
+                  created_at: "2023-12-05T06:57:29.370Z"
+                }
+              ]
     "tourDetailUpdate_404":
       description: "not found"
       content:
@@ -1534,16 +1565,103 @@ components:
               value:
                 message: "please fill rating correctly"
     
+    "bookingDetail_200":
+      description: "get detail booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get detail booking success"
+            data:
+              detail_count: 2
+              paid_at:
+              tour:
+                tour_id: 1
+                title: "Jepang Winter Golden Route & Mount Fuji"
+                description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                price: 30000000
+                discount: 2500000
+                admin_fee: 5000
+                quota: 25
+                available: 25
+                start: "2023-12-05T06:57:29.370Z"
+                finish: "2023-12-10T06:57:29.370Z"
+                rating: 4.8
+                status: 1
+                airline: "Garuda Indonesia"
+                picture: [
+                  "https://placehold.co/600x400/webp",
+                  "https://placehold.co/400x400/webp",
+                  "https://placehold.co/800x400/webp",
+                ]
+                facility: {
+                  include: ["food", "transportation", "hotel", "souvenir"],
+                  exclude: ["snack"]
+                }
+                itinerary: [
+                  {
+                    location: "Jakarta",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                  },
+                  {
+                    location: "Japan",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                  },
+                ]
+                reviews: [
+                  {
+                    user: {
+                      name: "Galih Prayoga",
+                      image: "https://placehold.co/400x400/webp"
+                    },
+                    text: "best tour",
+                    created_at: "2023-12-05T06:57:29.370Z"
+                  }
+                ]
     "bookingCreate_201":
       description: "create booking success"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/apiResponse"
-          example:
-            message: "create booking success"
-            data:
-              booking_code: 12345678
+          examples:
+            "mandiri virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  total: 22505000
+                  code_bill: 70012
+                  key_bill: 293751669219
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
+            "bca virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  total: 22505000
+                  va_number: 85977839865
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
+            "bri virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  total: 22505000
+                  va_number: 859779590666198474
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
+            "bni virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  total: 22505000
+                  va_number: 9888597781306417
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
+            "permata virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  total: 22505000
+                  va_number: 8590039559874267
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
     "bookingCreate_400":
       description: "bad request"
       content:
@@ -1554,7 +1672,10 @@ components:
             "default":
               value:
                 message: "bad request"
-            "invalid document_number":
+            "invalid tour id":
+              value:
+                message: "please fill tour id correctly"
+            "invalid document number":
               value:
                 message: "please fill document number correctly"
             "invalid name":
@@ -1566,42 +1687,60 @@ components:
             "invalid dob":
               value:
                 message: "please fill birth date correctly"
-
-    "bookingDetail_200":
-      description: "get booking detail success"
+            "invalid payment method":
+              value:
+                message: "please fill payment method correctly"
+    "bookingCreate_404":
+      description: "bad request"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/apiResponse"
-          example:
-            message: "get booking detail success"
-            data: [
-              {
-                booking_detail_id: 1,
-                booking_code: 12345678,
-                tour_id: 1,
-                name: "Galih Prayoga",
-                price: 15000000,
-              },
-              {
-                booking_detail_id: 2,
-                booking_code: 12345678,
-                tour_id: 1,
-                name: "John Doe",
-                price: 15000000,
-              },
-              
-            ]
-    "bookingDelete_200":
-      description: "delete booking success"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "tour not found":
+              value:
+                message: "tour not found"
+    "bookingUpdate_200":
+      description: "update booking success"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/apiResponse"
-          example:
-            message: "delete booking success"
-    "bookingDelete_404":
-      description: "not found"
+          examples:
+            "customer refund":
+              value:
+                message: "refund success"
+            "refund approved":
+              value:
+                message: "approve refund success"
+            "change payment method":
+              value:
+                message: "change payment method success"
+                data:
+                  total: 22505000
+                  va_number: 85977839865
+                  peyment_expired: "2023-12-05T06:57:29.370Z"
+    "bookingUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "no input":
+              value:
+                message: "please fill at least 1 input"
+            "invalid payment method":
+              value:
+                message: "please fill payment method correctly"
+    "bookingUpdate_404":
+      description: "bad request"
       content:
         application/json:
           schema:
@@ -1613,7 +1752,7 @@ components:
             "booking not found":
               value:
                 message: "booking not found"
-    
+
   parameters:
     airlineId:
       name: "id"
@@ -1648,7 +1787,7 @@ components:
       required: false
       schema:
         type: integer
-
+    
     facilityId:
       name: "id"
       in: path
@@ -1717,8 +1856,8 @@ components:
       required: true
       schema:
         type: integer
-        example: 12312399126
-    
+        example: 82312399126
+
   requestBodies:
     login:
       content:
@@ -1932,17 +2071,11 @@ components:
             type: object
             required:
               - "tour_id"
-              - "user_id"
               - "detail"
-              - "admin_fee"
-              - "discount"
-              - "total"
+              - "payment_method"
             properties:
               tour_id:
-                type: integer 
-                example: 1
-              user_id:
-                type: integer 
+                type: integer
                 example: 1
               detail:
                 type: array
@@ -1965,19 +2098,45 @@ components:
                       type: string
                       format: date-time
                       example: "2023-12-10T06:57:29.370Z"
-              admin_fee:
-                type: number
-                format: currency
-                example: 5000
-              discount:
-                type: number
-                format: currency
-                example: 2500000
-              total:
-                type: number
-                format: currency
-                example: 30000000
+              payment_method:
+                type: string
+                enum:
+                  - "mandiri_va"
+                  - "bca_va"
+                  - "bri_va"
+                  - "bni_va"
+                  - "permata_va"
+                example: "mandiri_va"
 
+    updateBooking:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - refund
+                  - refunded
+              payment_method:
+                type: string
+                enum:
+                  - "mandiri_va"
+                  - "bca_va"
+                  - "bri_va"
+                  - "bni_va"
+                  - "permata_va"
+          examples:
+            "customer refund":
+              value:
+                status: "refund"
+            "refund approved":
+              value:
+                status: "refunded"
+            "change payment method":
+              value:
+                payment_method: "bca_va"
 
   securitySchemes:
     JWT:
