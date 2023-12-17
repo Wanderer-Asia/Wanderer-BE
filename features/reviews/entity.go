@@ -8,6 +8,7 @@ import (
 
 type Review struct {
 	Id     uint
+	TourId uint
 	Text   string
 	Rating float32
 

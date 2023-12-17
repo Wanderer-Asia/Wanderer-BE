@@ -8,6 +8,7 @@ import (
 type Review struct {
 	Id     uint    `gorm:"column:id; primaryKey;"`
 	UserId uint    `gorm:"column:user_id;"`
+	TourId uint    `gorm:"column:tour_id;"`
 	Text   string  `gorm:"column:text; type:varchar(255);"`
 	Rating float32 `gorm:"column:rating; type:float;"`
 
