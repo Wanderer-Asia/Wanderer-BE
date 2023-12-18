@@ -7,6 +7,7 @@ import (
 	"wanderer/features/airlines"
 	"wanderer/features/facilities"
 	"wanderer/features/locations"
+	"wanderer/features/reviews"
 	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
@@ -36,6 +37,8 @@ type Tour struct {
 	Airline airlines.Airline
 
 	Location locations.Location
+
+	Reviews []reviews.Review
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

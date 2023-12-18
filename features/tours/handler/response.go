@@ -3,6 +3,7 @@ package handler
 import (
 	"reflect"
 	"time"
+	"wanderer/features/reviews"
 	"wanderer/features/tours"
 )
 
@@ -94,6 +95,13 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 	if !reflect.ValueOf(ent.Airline).IsZero() {
 		res.Airline = &TourAirlineResponse{Name: ent.Airline.Name}
 	}
+
+	for _, rev := range ent.Reviews {
+		var tmpReview = new(TourReviewResponse)
+		tmpReview.FromEntity(rev)
+
+		res.Reviews = append(res.Reviews, *tmpReview)
+	}
 }
 
 type TourItineraryResponse struct {
@@ -120,7 +128,27 @@ type TourReviewResponse struct {
 	CreatedAt time.Time        `json:"created_at"`
 }
 
+func (res *TourReviewResponse) FromEntity(ent reviews.Review) {
+	if !reflect.ValueOf(ent.User).IsZero() {
+		if ent.User.Name != "" {
+			res.User.Name = ent.User.Name
+		}
+
+		if ent.User.ImageUrl != "" {
+			res.User.Image = ent.User.ImageUrl
+		} else {
+			res.User.Image = "default"
+		}
+	}
+
+	if ent.Text != "" {
+		res.Text = ent.Text
+	}
+
+	res.CreatedAt = ent.CreatedAt
+}
+
 type TourUserResponse struct {
-	Name  string `json:"name"`
+	Name  string `json:"fullname"`
 	Image string `json:"image"`
 }

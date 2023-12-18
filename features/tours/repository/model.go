@@ -7,6 +7,7 @@ import (
 	ar "wanderer/features/airlines/repository"
 	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
+	rr "wanderer/features/reviews/repository"
 	"wanderer/features/tours"
 
 	"gorm.io/gorm"
@@ -39,6 +40,8 @@ type Tour struct {
 
 	LocationId uint
 	Location   lr.Location
+
+	Reviews []rr.Review `gorm:"foreignKey:TourId"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -189,6 +192,10 @@ func (mod *Tour) ToEntity(excludeFacility []fr.Facility) *tours.Tour {
 
 	if !reflect.ValueOf(mod.Location).IsZero() {
 		ent.Location = *mod.Location.ToEntity()
+	}
+
+	for _, review := range mod.Reviews {
+		ent.Reviews = append(ent.Reviews, *review.ToEntity())
 	}
 
 	if !mod.CreatedAt.IsZero() {

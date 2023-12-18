@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	fr "wanderer/features/facilities/repository"
+	rr "wanderer/features/reviews/repository"
 	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 
@@ -110,6 +111,12 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 		return nil, err
 	}
 	modTour.Itinerary = modItinerary
+
+	var modReviews []rr.Review
+	if err := repo.mysqlDB.WithContext(ctx).Where("tour_id = ?", id).Joins("User").Find(&modReviews).Error; err != nil {
+		return nil, err
+	}
+	modTour.Reviews = modReviews
 
 	return modTour.ToEntity(modFacilityExclude), nil
 }

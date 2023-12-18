@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"reflect"
 	"time"
 	"wanderer/features/reviews"
 	ur "wanderer/features/users/repository"
@@ -44,6 +45,10 @@ func (mod *Review) ToEntity() *reviews.Review {
 
 	if mod.UserId != 0 {
 		ent.User.Id = mod.UserId
+	}
+
+	if !reflect.ValueOf(mod.User).IsZero() {
+		ent.User = *mod.User.ToEntity()
 	}
 
 	if mod.TourId != 0 {
