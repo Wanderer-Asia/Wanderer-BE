@@ -136,6 +136,11 @@ func (hdl *airlineHandler) Update() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
+			if strings.Contains(err.Error(), "Duplicate") {
+				response["message"] = "airline name is already in the system"
+				return c.JSON(http.StatusConflict, response)
+			}
+
 			if strings.Contains(err.Error(), "not found: ") {
 				response["message"] = "airline not found"
 				return c.JSON(http.StatusNotFound, response)

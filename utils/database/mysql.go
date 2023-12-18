@@ -8,6 +8,7 @@ import (
 	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
 	tr "wanderer/features/tours/repository"
+	rr "wanderer/features/reviews/repository"
 	ur "wanderer/features/users/repository"
 
 	"gorm.io/driver/mysql"
@@ -32,6 +33,7 @@ func MysqlMigrate(db *gorm.DB) error {
 		&tr.File{},
 		&tr.Tour{},
 		&tr.Itinerary{},
+		&rr.Review{},
 	)
 
 	if err != nil {

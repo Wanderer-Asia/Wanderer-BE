@@ -109,6 +109,11 @@ func (hdl *facilityHandler) Update() echo.HandlerFunc {
 		if err := hdl.facilityService.Update(uint(id), *request.ToEntity()); err != nil {
 			c.Logger().Error(err)
 
+			if strings.Contains(err.Error(), "Duplicate") {
+				response["message"] = "this facility is already in the system"
+				return c.JSON(http.StatusConflict, response)
+			}
+
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)

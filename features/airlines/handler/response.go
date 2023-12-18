@@ -19,5 +19,7 @@ func (res *GetAllResponse) FromEntity(ent airlines.Airline) {
 
 	if ent.ImageUrl != "" {
 		res.Image = ent.ImageUrl
+	} else {
+		res.Image = "default"
 	}
 }
