@@ -21,10 +21,6 @@ func (srv *airlineService) Create(newAirline airlines.Airline) error {
 		return errors.New("validate: name can't be empty")
 	}
 
-	if newAirline.ImageUrl == "" {
-		newAirline.ImageUrl = "default"
-	}
-
 	if err := srv.repo.Create(newAirline); err != nil {
 		return err
 	}

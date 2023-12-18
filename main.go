@@ -22,9 +22,14 @@ import (
 	fr "wanderer/features/facilities/repository"
 	fs "wanderer/features/facilities/service"
 
+
 	th "wanderer/features/tours/handler"
 	tr "wanderer/features/tours/repository"
 	ts "wanderer/features/tours/service"
+
+	rh "wanderer/features/reviews/handler"
+	rr "wanderer/features/reviews/repository"
+	rs "wanderer/features/reviews/service"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
@@ -82,6 +87,10 @@ func main() {
 	tourRepository := tr.NewTourRepository(dbConnection, cld)
 	tourService := ts.NewTourService(tourRepository)
 	tourHandler := th.NewTourHandler(tourService)
+  
+	reviewRepository := rr.NewReviewRepository(dbConnection)
+	reviewService := rs.NewReviewService(reviewRepository)
+	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
 
 	app := echo.New()
 	app.Use(middleware.Recover())
@@ -95,6 +104,7 @@ func main() {
 		LocationHandler: locationHandler,
 		FacilityHandler: facilityHandler,
 		TourHandler:     tourHandler,
+		ReviewHandler:   reviewHandler,
 	}
 
 	route.InitRouter()
