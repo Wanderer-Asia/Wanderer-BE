@@ -39,7 +39,6 @@ func (srv *userService) Register(newUser users.User) error {
 
 	newUser.Password = encrypt
 	newUser.Role = "user"
-	newUser.ImageUrl = "default"
 
 	if err := srv.repo.Register(newUser); err != nil {
 		return err
