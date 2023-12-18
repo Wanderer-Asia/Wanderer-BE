@@ -3,11 +3,13 @@ package repository
 import (
 	"time"
 	"wanderer/features/reviews"
+	ur "wanderer/features/users/repository"
 )
 
 type Review struct {
 	Id     uint    `gorm:"column:id; primaryKey;"`
 	UserId uint    `gorm:"column:user_id;"`
+	User   ur.User `gorm:"foreignkey:UserId;"`
 	TourId uint    `gorm:"column:tour_id;"`
 	Text   string  `gorm:"column:text; type:text;"`
 	Rating float32 `gorm:"column:rating; type:float(8,2);"`
@@ -20,8 +22,8 @@ func (mod *Review) FromEntity(ent reviews.Review) {
 		mod.Text = ent.Text
 	}
 
-	if ent.UserId != 0 {
-		mod.UserId = ent.UserId
+	if ent.User.Id != 0 {
+		mod.UserId = ent.User.Id
 	}
 
 	if ent.TourId != 0 {
@@ -41,7 +43,7 @@ func (mod *Review) ToEntity() *reviews.Review {
 	}
 
 	if mod.UserId != 0 {
-		ent.UserId = mod.UserId
+		ent.User.Id = mod.UserId
 	}
 
 	if mod.TourId != 0 {

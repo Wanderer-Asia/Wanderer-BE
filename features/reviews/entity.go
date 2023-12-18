@@ -2,16 +2,18 @@ package reviews
 
 import (
 	"time"
+	"wanderer/features/users"
 
 	"github.com/labstack/echo/v4"
 )
 
 type Review struct {
 	Id     uint
-	UserId uint
 	TourId uint
 	Text   string
 	Rating float32
+
+	User users.User
 
 	CreatedAt time.Time
 }
