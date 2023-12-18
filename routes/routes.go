@@ -4,6 +4,7 @@ import (
 	"wanderer/features/airlines"
 	"wanderer/features/facilities"
 	"wanderer/features/locations"
+	"wanderer/features/tours"
 	"wanderer/features/reviews"
 	"wanderer/features/users"
 
@@ -18,6 +19,7 @@ type Routes struct {
 	AirlineHandler  airlines.Handler
 	LocationHandler locations.Handler
 	FacilityHandler facilities.Handler
+	TourHandler     tours.Handler
 	ReviewHandler   reviews.Handler
 }
 
@@ -26,6 +28,7 @@ func (router Routes) InitRouter() {
 	router.AirlineRouter()
 	router.LocationRouter()
 	router.FacilityRouter()
+	router.TourRouter()
 	router.ReviewRouter()
 }
 
@@ -55,6 +58,13 @@ func (router *Routes) FacilityRouter() {
 	router.Server.GET("/facilities", router.FacilityHandler.GetAll())
 	router.Server.PUT("/facilities/:id", router.FacilityHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/facilities/:id", router.FacilityHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+}
+
+func (router *Routes) TourRouter() {
+	router.Server.GET("/tours", router.TourHandler.GetAll())
+	router.Server.POST("/tours", router.TourHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.PUT("/tours/:id", router.TourHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/tours/:id", router.TourHandler.GetDetail(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) ReviewRouter() {

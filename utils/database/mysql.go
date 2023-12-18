@@ -7,6 +7,7 @@ import (
 	ar "wanderer/features/airlines/repository"
 	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
+	tr "wanderer/features/tours/repository"
 	rr "wanderer/features/reviews/repository"
 	ur "wanderer/features/users/repository"
 
@@ -29,6 +30,9 @@ func MysqlMigrate(db *gorm.DB) error {
 		&ar.Airline{},
 		&lr.Location{},
 		&fr.Facility{},
+		&tr.File{},
+		&tr.Tour{},
+		&tr.Itinerary{},
 		&rr.Review{},
 	)
 

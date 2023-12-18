@@ -22,6 +22,11 @@ import (
 	fr "wanderer/features/facilities/repository"
 	fs "wanderer/features/facilities/service"
 
+
+	th "wanderer/features/tours/handler"
+	tr "wanderer/features/tours/repository"
+	ts "wanderer/features/tours/service"
+
 	rh "wanderer/features/reviews/handler"
 	rr "wanderer/features/reviews/repository"
 	rs "wanderer/features/reviews/service"
@@ -79,6 +84,10 @@ func main() {
 	facilityService := fs.NewFacilityService(facilityRepository)
 	facilityHandler := fh.NewFacilityHandler(facilityService)
 
+	tourRepository := tr.NewTourRepository(dbConnection, cld)
+	tourService := ts.NewTourService(tourRepository)
+	tourHandler := th.NewTourHandler(tourService)
+  
 	reviewRepository := rr.NewReviewRepository(dbConnection)
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
@@ -94,6 +103,7 @@ func main() {
 		AirlineHandler:  airlineHandler,
 		LocationHandler: locationHandler,
 		FacilityHandler: facilityHandler,
+		TourHandler:     tourHandler,
 		ReviewHandler:   reviewHandler,
 	}
 
