@@ -119,6 +119,7 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 
 	var mod = new(Tour)
 	mod.FromEntity(data)
+	mod.Available = mod.Quota
 
 	tx := repo.mysqlDB.WithContext(ctx).Begin()
 	defer func() {

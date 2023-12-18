@@ -80,7 +80,6 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 
 	if ent.Quota != 0 {
 		mod.Quota = ent.Quota
-		mod.Available = ent.Available
 	}
 
 	if ent.Thumbnail.Raw != nil {
