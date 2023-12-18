@@ -59,4 +59,5 @@ func (router *Routes) FacilityRouter() {
 
 func (router *Routes) TourRouter() {
 	router.Server.POST("/tours", router.TourHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.PUT("/tours/:id", router.TourHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/features/tours"
 
@@ -56,5 +57,41 @@ func (hdl *tourHandler) Create() echo.HandlerFunc {
 }
 
 func (hdl *tourHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(TourCreateUpdateRequest)
+
+		tourId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid tour id"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := request.Bind(c); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "bad request"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		data := request.ToEntity()
+		data.Id = uint(tourId)
+
+		if err := hdl.tourService.Update(c.Request().Context(), uint(tourId), data); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "update tour success"
+		return c.JSON(http.StatusOK, response)
+	}
 }

@@ -95,5 +95,85 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 }
 
 func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour) error {
-	panic("unimplemented")
+	var UniqueFilename = true
+
+	var mod = new(Tour)
+	mod.FromEntity(data)
+
+	tx := repo.mysqlDB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Transaction(func(txPict *gorm.DB) error {
+		for i := 0; i < len(data.Picture); i++ {
+			res, err := repo.cld.Upload.Upload(ctx, data.Picture[i].Raw, uploader.UploadParams{
+				UniqueFilename: &UniqueFilename,
+				Folder:         "tours",
+			})
+
+			if err != nil {
+				return err
+			}
+
+			mod.Picture[i].Url = res.URL
+		}
+
+		if mod.Picture != nil {
+			if err := txPict.Model(&Tour{Id: id}).Association("Picture").Unscoped().Clear(); err != nil {
+				return err
+			}
+
+			return txPict.Create(mod.Picture).Error
+		}
+
+		return nil
+	})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Transaction(func(txFacility *gorm.DB) error {
+		return txFacility.Model(&Tour{Id: id}).Association("Facility").Unscoped().Clear()
+	})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Transaction(func(txItinerary *gorm.DB) error {
+		return txItinerary.Model(&Tour{Id: id}).Association("Itinerary").Unscoped().Clear()
+	})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Transaction(func(txTour *gorm.DB) error {
+		res, err := repo.cld.Upload.Upload(ctx, data.Thumbnail.Raw, uploader.UploadParams{
+			UniqueFilename: &UniqueFilename,
+			Folder:         "tours",
+		})
+
+		if err != nil {
+			return err
+		}
+
+		mod.ThumbnailUrl = res.URL
+
+		return txTour.Where(&Tour{Id: id}).Updates(mod).Error
+	})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
 }
