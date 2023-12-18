@@ -161,6 +161,11 @@ func (hdl *userHandler) Update() echo.HandlerFunc {
 				return c.JSON(http.StatusNotFound, response)
 			}
 
+			if strings.Contains(err.Error(), "Duplicate") {
+				response["message"] = "this email has been used, please use another email"
+				return c.JSON(http.StatusConflict, response)
+			}
+
 			response["message"] = "internal server error"
 			return c.JSON(http.StatusInternalServerError, response)
 		}

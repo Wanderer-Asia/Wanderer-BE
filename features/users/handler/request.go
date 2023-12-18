@@ -6,14 +6,14 @@ import (
 )
 
 type RegisterRequest struct {
-	Name     string `json:"name,omitempty"`
+	Name     string `json:"fullname,omitempty"`
 	Phone    string `json:"phone,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
 type LoginRequest struct {
-	Name     string `json:"name,omitempty"`
+	Name     string `json:"fullname,omitempty"`
 	Phone    string `json:"phone,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Password string `json:"password,omitempty"`
