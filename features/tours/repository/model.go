@@ -15,14 +15,14 @@ import (
 type Tour struct {
 	Id          uint      `gorm:"column:id; primaryKey;"`
 	Title       string    `gorm:"column:title; type:varchar(200); index;"`
-	Description string    `gorm:"column:description; type:text; index;"`
+	Description string    `gorm:"column:description; type:text;"`
 	Price       float64   `gorm:"column:price; type:decimal(16,2); index;"`
-	AdminFee    float64   `gorm:"column:admin_fee; type:decimal(16,2); index;"`
+	AdminFee    float64   `gorm:"column:admin_fee; type:decimal(16,2);"`
 	Discount    int       `gorm:"column:discount; index;"`
-	Start       time.Time `gorm:"column:start; type:timestamp; index;"`
-	Finish      time.Time `gorm:"column:finish; type:timestamp; index;"`
-	Quota       int       `gorm:"column:quota; index;"`
-	Available   int       `gorm:"column:available; index;"`
+	Start       time.Time `gorm:"column:start; type:timestamp;"`
+	Finish      time.Time `gorm:"column:finish; type:timestamp;"`
+	Quota       int       `gorm:"column:quota;"`
+	Available   int       `gorm:"column:available;"`
 	Rating      float32   `gorm:"column:rating; type:float; index;"`
 
 	ThumbnailUrl string    `gorm:"column:thumbnail; type:text;"`

@@ -11,9 +11,89 @@ import (
 	"wanderer/features/locations"
 	"wanderer/features/tours"
 	"wanderer/features/tours/mocks"
+	"wanderer/helpers/filters"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestTourServiceGetAll(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewTourService(repo)
+	ctx := context.Background()
+
+	data := []tours.Tour{
+		{
+			Id:       1,
+			Title:    "Jepang Winter Golden Route & Mount Fuji",
+			Price:    30000000,
+			Discount: 10,
+			Start:    time.Now(),
+			Quota:    25,
+			Rating:   4.8,
+			Thumbnail: tours.File{
+				Raw: strings.NewReader("case image"),
+			},
+			Location: locations.Location{
+				Id: 1,
+			},
+		},
+		{
+			Id:       2,
+			Title:    "Jepang Winter Golden Route & Mount Fuji",
+			Price:    30000000,
+			Discount: 10,
+			Start:    time.Now(),
+			Quota:    25,
+			Rating:   4.8,
+			Thumbnail: tours.File{
+				Raw: strings.NewReader("case image"),
+			},
+			Location: locations.Location{
+				Id: 1,
+			},
+		},
+	}
+
+	filter := filters.Filter{
+		Search: filters.Search{
+			Keyword: "Jepang",
+		},
+		Pagination: filters.Pagination{
+			Start: 0,
+			Limit: 2,
+		},
+		Sort: filters.Sort{
+			Column:    "price",
+			Direction: true,
+		},
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetAll", ctx, filter).Return(nil, 0, errors.New("some error from repository")).Once()
+
+		result, totalData, err := srv.GetAll(ctx, filter)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+		assert.Equal(t, 0, totalData)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		resultData := data
+
+		repo.On("GetAll", ctx, filter).Return(resultData, 10, nil).Once()
+
+		result, totalData, err := srv.GetAll(ctx, filter)
+
+		assert.NoError(t, err)
+		assert.Equal(t, data, result)
+		assert.Equal(t, 10, totalData)
+
+		repo.AssertExpectations(t)
+	})
+}
 
 func TestTourServiceGetDetail(t *testing.T) {
 	repo := mocks.NewRepository(t)

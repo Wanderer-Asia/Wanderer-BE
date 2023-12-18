@@ -1,37 +1,38 @@
 package handler
 
 import (
+	"reflect"
 	"time"
 	"wanderer/features/tours"
 )
 
 type TourResponse struct {
-	Id          uint      `json:"tour_id,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Price       float64   `json:"price"`
-	AdminFee    float64   `json:"admin_fee"`
-	Discount    int       `json:"discount"`
-	Start       time.Time `json:"start,omitempty"`
-	Finish      time.Time `json:"finish,omitempty"`
-	Quota       int       `json:"quota,omitempty"`
-	Available   int       `json:"available,omitempty"`
-	Rating      float32   `json:"rating,omitempty"`
+	Id          uint       `json:"tour_id,omitempty"`
+	Title       string     `json:"title,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Price       float64    `json:"price"`
+	AdminFee    *float64   `json:"admin_fee,omitempty"`
+	Discount    int        `json:"discount"`
+	Start       time.Time  `json:"start,omitempty"`
+	Finish      *time.Time `json:"finish,omitempty"`
+	Quota       int        `json:"quota,omitempty"`
+	Available   int        `json:"available,omitempty"`
+	Rating      float32    `json:"rating,omitempty"`
 
 	Thumbnail string   `json:"thumbnail"`
-	Picture   []string `json:"picture"`
+	Picture   []string `json:"picture,omitempty"`
 
-	Facility struct {
+	Facility *struct {
 		Include []string `json:"include"`
 		Exclude []string `json:"exclude"`
-	} `json:"facility"`
+	} `json:"facility,omitempty"`
 
-	Itinerary []TourItineraryResponse `json:"itinerary"`
+	Itinerary []TourItineraryResponse `json:"itinerary,omitempty"`
 
 	Location TourLocationResponse `json:"location"`
-	Airline  TourAirlineResponse  `json:"airline"`
+	Airline  *TourAirlineResponse `json:"airline,omitempty"`
 
-	Reviews []TourReviewResponse `json:"reviews"`
+	Reviews []TourReviewResponse `json:"reviews,omitempty"`
 }
 
 func (res *TourResponse) FromEntity(ent tours.Tour) {
@@ -42,10 +43,15 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 	res.Title = ent.Title
 	res.Description = ent.Description
 	res.Price = ent.Price
-	res.AdminFee = ent.AdminFee
+	if ent.AdminFee != -1 {
+		res.AdminFee = &ent.AdminFee
+	}
 	res.Discount = ent.Discount
 	res.Start = ent.Start
-	res.Finish = ent.Finish
+	if !ent.Finish.IsZero() {
+		res.Finish = &ent.Finish
+	}
+
 	res.Quota = ent.Quota
 	res.Available = ent.Available
 	res.Rating = ent.Rating
@@ -60,6 +66,13 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 		if pict.Url != "" {
 			res.Picture = append(res.Picture, pict.Url)
 		}
+	}
+
+	if len(ent.FacilityInclude) != 0 || len(ent.FacilityExclude) != 0 {
+		res.Facility = &struct {
+			Include []string `json:"include"`
+			Exclude []string `json:"exclude"`
+		}{}
 	}
 
 	for _, fac := range ent.FacilityInclude {
@@ -78,7 +91,9 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 	}
 
 	res.Location = TourLocationResponse{Name: ent.Location.Name}
-	res.Airline = TourAirlineResponse{Name: ent.Airline.Name}
+	if !reflect.ValueOf(ent.Airline).IsZero() {
+		res.Airline = &TourAirlineResponse{Name: ent.Airline.Name}
+	}
 }
 
 type TourItineraryResponse struct {

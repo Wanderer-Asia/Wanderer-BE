@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 	"wanderer/features/tours"
+	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
@@ -20,7 +22,43 @@ type tourHandler struct {
 }
 
 func (hdl *tourHandler) GetAll() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		var pagination = new(filters.Pagination)
+		c.Bind(pagination)
+		if pagination.Limit == 0 {
+			pagination.Limit = 5
+		}
+
+		var search = new(filters.Search)
+		c.Bind(search)
+
+		var sort = new(filters.Sort)
+		c.Bind(sort)
+
+		result, totalData, err := hdl.tourService.GetAll(context.Background(), filters.Filter{Search: *search, Pagination: *pagination, Sort: *sort})
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["totalData"] = totalData
+
+		var data []TourResponse
+		for _, tour := range result {
+			var tmpTour = new(TourResponse)
+			tmpTour.FromEntity(tour)
+
+			data = append(data, *tmpTour)
+		}
+		response["data"] = data
+
+		response["message"] = "get all tour success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *tourHandler) GetDetail() echo.HandlerFunc {

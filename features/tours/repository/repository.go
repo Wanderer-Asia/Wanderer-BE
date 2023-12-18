@@ -24,7 +24,57 @@ type tourRepository struct {
 }
 
 func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]tours.Tour, int, error) {
-	panic("unimplemented")
+	var mod []Tour
+	var totalData int64
+
+	qry := repo.mysqlDB.WithContext(ctx).Model(&Tour{})
+
+	qry = qry.Select(
+		"tours.id",
+		"tours.title",
+		"tours.quota",
+		"tours.available",
+		"tours.discount",
+		"tours.rating",
+		"tours.price",
+		"tours.thumbnail",
+		"tours.start",
+	)
+
+	if flt.Search.Keyword != "" {
+		qry = qry.Where("title like ?", "%"+flt.Search.Keyword+"%")
+	}
+
+	qry.Count(&totalData)
+
+	if flt.Sort.Column != "" {
+		dir := "asc"
+		if flt.Sort.Direction {
+			dir = "desc"
+		}
+
+		switch flt.Sort.Column {
+		case "rating", "price", "discount":
+		case "location":
+			qry = qry.Order("Location.name " + dir)
+		case "sold":
+			qry = qry.Order("(tours.quota-tours.available) " + dir)
+		default:
+			qry = qry.Order("id desc")
+		}
+	}
+
+	qry = qry.Joins("Location").Limit(flt.Pagination.Limit).Offset(flt.Pagination.Start)
+	if err := qry.Find(&mod).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var result []tours.Tour
+	for _, tour := range mod {
+		result = append(result, *tour.ToEntity(nil))
+	}
+
+	return result, int(totalData), nil
 }
 
 func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {

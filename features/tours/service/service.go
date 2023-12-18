@@ -18,7 +18,12 @@ type tourService struct {
 }
 
 func (srv *tourService) GetAll(ctx context.Context, flt filters.Filter) ([]tours.Tour, int, error) {
-	panic("unimplemented")
+	result, totalData, err := srv.repo.GetAll(ctx, flt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result, totalData, nil
 }
 
 func (srv *tourService) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {
