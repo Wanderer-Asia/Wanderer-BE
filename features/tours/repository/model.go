@@ -6,6 +6,7 @@ import (
 	ar "wanderer/features/airlines/repository"
 	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
+	"wanderer/features/tours"
 
 	"gorm.io/gorm"
 )
@@ -30,7 +31,7 @@ type Tour struct {
 
 	Facility []fr.Facility `gorm:"many2many:tour_facility"`
 
-	Itinerary []Itinerary
+	Itinerary []Itinerary `gorm:"foreignKey:TourId"`
 
 	AirlineId uint
 	Airline   ar.Airline
@@ -43,6 +44,74 @@ type Tour struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
+func (mod *Tour) FromEntity(ent tours.Tour) {
+	if ent.Id != 0 {
+		mod.Id = ent.Id
+	}
+
+	if ent.Title != "" {
+		mod.Title = ent.Title
+	}
+
+	if ent.Description != "" {
+		mod.Description = ent.Description
+	}
+
+	if ent.Price != 0 {
+		mod.Price = ent.Price
+	}
+
+	if ent.AdminFee != 0 {
+		mod.AdminFee = ent.AdminFee
+	}
+
+	if ent.Discount != 0 {
+		mod.Discount = ent.Discount
+	}
+
+	if !ent.Start.IsZero() {
+		mod.Start = ent.Start
+	}
+
+	if !ent.Finish.IsZero() {
+		mod.Finish = ent.Finish
+	}
+
+	if ent.Quota != 0 {
+		mod.Quota = ent.Quota
+	}
+
+	if ent.Thumbnail.Raw != nil {
+		mod.ThumbnailRaw = ent.Thumbnail.Raw
+	}
+
+	for _, picture := range ent.Picture {
+		var modPicture = new(File)
+		modPicture.FromEntity(picture)
+		mod.Picture = append(mod.Picture, *modPicture)
+	}
+
+	for _, facility := range ent.Facility {
+		if facility.Id != 0 {
+			mod.Facility = append(mod.Facility, fr.Facility{Id: facility.Id})
+		}
+	}
+
+	for _, it := range ent.Itinerary {
+		var modItinerary = new(Itinerary)
+		modItinerary.FromEntity(it)
+		mod.Itinerary = append(mod.Itinerary, *modItinerary)
+	}
+
+	if ent.Airline.Id != 0 {
+		mod.AirlineId = ent.Airline.Id
+	}
+
+	if ent.Location.Id != 0 {
+		mod.LocationId = ent.Location.Id
+	}
+}
+
 type File struct {
 	Id int `gorm:"column:id; primaryKey;"`
 
@@ -50,6 +119,12 @@ type File struct {
 	Url string    `gorm:"column:file; type:text;"`
 
 	CreatedAt time.Time
+}
+
+func (mod *File) FromEntity(ent tours.File) {
+	if ent.Raw != nil {
+		mod.Raw = ent.Raw
+	}
 }
 
 type Itinerary struct {
@@ -62,4 +137,14 @@ type Itinerary struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
+func (mod *Itinerary) FromEntity(ent tours.Itinerary) {
+	if ent.Location != "" {
+		mod.Location = ent.Location
+	}
+
+	if ent.Description != "" {
+		mod.Description = ent.Description
+	}
 }

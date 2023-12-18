@@ -30,8 +30,8 @@ func MysqlMigrate(db *gorm.DB) error {
 		&lr.Location{},
 		&fr.Facility{},
 		&tr.File{},
-		&tr.Itinerary{},
 		&tr.Tour{},
+		&tr.Itinerary{},
 	)
 
 	if err != nil {

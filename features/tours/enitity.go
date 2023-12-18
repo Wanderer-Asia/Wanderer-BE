@@ -13,7 +13,7 @@ import (
 )
 
 type Tour struct {
-	Id          int
+	Id          uint
 	Title       string
 	Description string
 	Price       float64
