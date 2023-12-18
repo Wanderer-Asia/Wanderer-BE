@@ -30,7 +30,8 @@ type Tour struct {
 
 	Itinerary []Itinerary
 
-	Facility []facilities.Facility
+	FacilityInclude []facilities.Facility
+	FacilityExclude []facilities.Facility
 
 	Airline airlines.Airline
 
@@ -69,14 +70,14 @@ type Handler interface {
 
 type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
-	GetDetail(ctx context.Context) (*Tour, error)
+	GetDetail(ctx context.Context, id uint) (*Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
 }
 
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
-	GetDetail(ctx context.Context) (*Tour, error)
+	GetDetail(ctx context.Context, id uint) (*Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
 }

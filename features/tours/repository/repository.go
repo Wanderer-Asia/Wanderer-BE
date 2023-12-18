@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	fr "wanderer/features/facilities/repository"
 	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 
@@ -26,8 +27,41 @@ func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]t
 	panic("unimplemented")
 }
 
-func (repo *tourRepository) GetDetail(ctx context.Context) (*tours.Tour, error) {
-	panic("unimplemented")
+func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {
+	var modTour = new(Tour)
+	if err := repo.mysqlDB.WithContext(ctx).Joins("Airline").Joins("Location").Where(&Tour{Id: id}).First(modTour).Error; err != nil {
+		return nil, err
+	}
+
+	var modFile []File
+	if err := repo.mysqlDB.WithContext(ctx).Joins("JOIN tour_attachment ON tour_attachment.file_id = files.id AND tour_attachment.tour_id = ?", id).Find(&modFile).Error; err != nil {
+		return nil, err
+	}
+	modTour.Picture = modFile
+
+	var modFacilityInclude []fr.Facility
+	if err := repo.mysqlDB.WithContext(ctx).Joins("JOIN tour_facility ON tour_facility.facility_id = facilities.id AND tour_facility.tour_id = ?", id).Find(&modFacilityInclude).Error; err != nil {
+		return nil, err
+	}
+	modTour.Facility = modFacilityInclude
+
+	var facilityIncludes []uint
+	for _, facility := range modFacilityInclude {
+		facilityIncludes = append(facilityIncludes, facility.Id)
+	}
+
+	var modFacilityExclude []fr.Facility
+	if err := repo.mysqlDB.WithContext(ctx).Where("id not in (?)", facilityIncludes).Find(&modFacilityExclude).Error; err != nil {
+		return nil, err
+	}
+
+	var modItinerary []Itinerary
+	if err := repo.mysqlDB.WithContext(ctx).Where("tour_id = ?", id).Find(&modItinerary).Error; err != nil {
+		return nil, err
+	}
+	modTour.Itinerary = modItinerary
+
+	return modTour.ToEntity(modFacilityExclude), nil
 }
 
 func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
@@ -36,7 +70,7 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 	var mod = new(Tour)
 	mod.FromEntity(data)
 
-	tx := repo.mysqlDB.Begin()
+	tx := repo.mysqlDB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -100,7 +134,7 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 	var mod = new(Tour)
 	mod.FromEntity(data)
 
-	tx := repo.mysqlDB.Begin()
+	tx := repo.mysqlDB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()

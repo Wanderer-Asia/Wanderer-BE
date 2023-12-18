@@ -24,7 +24,44 @@ func (hdl *tourHandler) GetAll() echo.HandlerFunc {
 }
 
 func (hdl *tourHandler) GetDetail() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		tourId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid tour id"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		result, err := hdl.tourService.GetDetail(c.Request().Context(), uint(tourId))
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "tour not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data = new(TourResponse)
+		if result != nil {
+			data.FromEntity(*result)
+		}
+
+		response["message"] = "get detail tour success"
+		response["data"] = data
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *tourHandler) Create() echo.HandlerFunc {

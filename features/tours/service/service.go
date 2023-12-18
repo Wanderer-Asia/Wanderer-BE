@@ -21,8 +21,17 @@ func (srv *tourService) GetAll(ctx context.Context, flt filters.Filter) ([]tours
 	panic("unimplemented")
 }
 
-func (srv *tourService) GetDetail(ctx context.Context) (*tours.Tour, error) {
-	panic("unimplemented")
+func (srv *tourService) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {
+	if id == 0 {
+		return nil, errors.New("validate: invalid tour id")
+	}
+
+	result, err := srv.repo.GetDetail(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (srv *tourService) Create(ctx context.Context, data tours.Tour) error {

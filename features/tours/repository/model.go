@@ -2,6 +2,7 @@ package repository
 
 import (
 	"io"
+	"reflect"
 	"time"
 	ar "wanderer/features/airlines/repository"
 	fr "wanderer/features/facilities/repository"
@@ -79,6 +80,7 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 
 	if ent.Quota != 0 {
 		mod.Quota = ent.Quota
+		mod.Available = ent.Available
 	}
 
 	if ent.Thumbnail.Raw != nil {
@@ -91,7 +93,7 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 		mod.Picture = append(mod.Picture, *modPicture)
 	}
 
-	for _, facility := range ent.Facility {
+	for _, facility := range ent.FacilityExclude {
 		if facility.Id != 0 {
 			mod.Facility = append(mod.Facility, fr.Facility{Id: facility.Id})
 		}
@@ -112,6 +114,99 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 	}
 }
 
+func (mod *Tour) ToEntity(excludeFacility []fr.Facility) *tours.Tour {
+	var ent = new(tours.Tour)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Title != "" {
+		ent.Title = mod.Title
+	}
+
+	if mod.Description != "" {
+		ent.Description = mod.Description
+	}
+
+	if mod.Price != 0 {
+		ent.Price = mod.Price
+	}
+
+	if mod.AdminFee != 0 {
+		ent.AdminFee = mod.AdminFee
+	}
+
+	if mod.Discount != 0 {
+		ent.Discount = mod.Discount
+	}
+
+	if !mod.Start.IsZero() {
+		ent.Start = mod.Start
+	}
+
+	if !mod.Finish.IsZero() {
+		ent.Finish = mod.Finish
+	}
+
+	if mod.Quota != 0 {
+		ent.Quota = mod.Quota
+	}
+
+	ent.Available = mod.Available
+	ent.Rating = mod.Rating
+
+	if mod.ThumbnailUrl != "" {
+		ent.Thumbnail.Url = mod.ThumbnailUrl
+	}
+
+	for _, pict := range mod.Picture {
+		if !reflect.ValueOf(pict).IsZero() {
+			ent.Picture = append(ent.Picture, pict.ToEntity())
+		}
+	}
+
+	for _, fac := range mod.Facility {
+		if !reflect.ValueOf(fac).IsZero() {
+			ent.FacilityInclude = append(ent.FacilityInclude, *fac.ToEntity())
+		}
+	}
+
+	for _, fac := range excludeFacility {
+		if !reflect.ValueOf(fac).IsZero() {
+			ent.FacilityExclude = append(ent.FacilityExclude, *fac.ToEntity())
+		}
+	}
+
+	for _, it := range mod.Itinerary {
+		if !reflect.ValueOf(it).IsZero() {
+			ent.Itinerary = append(ent.Itinerary, it.ToEntity())
+		}
+	}
+
+	if !reflect.ValueOf(mod.Airline).IsZero() {
+		ent.Airline = *mod.Airline.ToEntity()
+	}
+
+	if !reflect.ValueOf(mod.Location).IsZero() {
+		ent.Location = *mod.Location.ToEntity()
+	}
+
+	if !mod.CreatedAt.IsZero() {
+		ent.CreatedAt = mod.CreatedAt
+	}
+
+	if !mod.UpdatedAt.IsZero() {
+		ent.UpdatedAt = mod.UpdatedAt
+	}
+
+	if !mod.DeletedAt.Time.IsZero() {
+		ent.DeletedAt = mod.DeletedAt.Time
+	}
+
+	return ent
+}
+
 type File struct {
 	Id int `gorm:"column:id; primaryKey;"`
 
@@ -127,10 +222,28 @@ func (mod *File) FromEntity(ent tours.File) {
 	}
 }
 
+func (mod *File) ToEntity() tours.File {
+	var ent = new(tours.File)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Url != "" {
+		ent.Url = mod.Url
+	}
+
+	if !mod.CreatedAt.IsZero() {
+		ent.CreatedAt = mod.CreatedAt
+	}
+
+	return *ent
+}
+
 type Itinerary struct {
 	Id          int    `gorm:"column:id; primaryKey;"`
-	Location    string `gorm:"column:location; type:varchar(200); index;"`
-	Description string `gorm:"column:description; type:text; index;"`
+	Location    string `gorm:"column:location; type:varchar(200);"`
+	Description string `gorm:"column:description; type:text;"`
 
 	TourId uint
 
@@ -147,4 +260,34 @@ func (mod *Itinerary) FromEntity(ent tours.Itinerary) {
 	if ent.Description != "" {
 		mod.Description = ent.Description
 	}
+}
+
+func (mod *Itinerary) ToEntity() tours.Itinerary {
+	var ent = new(tours.Itinerary)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Location != "" {
+		ent.Location = mod.Location
+	}
+
+	if mod.Description != "" {
+		ent.Description = mod.Description
+	}
+
+	if !mod.CreatedAt.IsZero() {
+		ent.CreatedAt = mod.CreatedAt
+	}
+
+	if !mod.UpdatedAt.IsZero() {
+		ent.UpdatedAt = mod.UpdatedAt
+	}
+
+	if !mod.DeletedAt.Time.IsZero() {
+		ent.DeletedAt = mod.DeletedAt.Time
+	}
+
+	return *ent
 }

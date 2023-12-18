@@ -124,7 +124,7 @@ func (req *TourCreateUpdateRequest) ToEntity() tours.Tour {
 	}
 
 	for _, facilityId := range req.Facility {
-		ent.Facility = append(ent.Facility, facilities.Facility{Id: facilityId})
+		ent.FacilityInclude = append(ent.FacilityInclude, facilities.Facility{Id: facilityId})
 	}
 
 	for _, it := range req.Itinerary {

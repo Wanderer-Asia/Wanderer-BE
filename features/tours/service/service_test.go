@@ -15,6 +15,78 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestTourServiceGetDetail(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewTourService(repo)
+	ctx := context.Background()
+
+	data := tours.Tour{
+		Title:       "Jepang Winter Golden Route & Mount Fuji",
+		Description: "Everything feels extra spectacular in Dubai—from the ultra-modern Burj Khalifa to the souks and malls filled with gold and jewelry vendors. It`s a place where if you can dream it, you can do it: Whether that means skiing indoors, dune-surfing in the desert, or zip-lining above the city. But it`s not all glitz and adrenaline-pumping action. Stroll through the winding alleys of Al Fahidi Historical Neighborhood to see what Dubai was like during the mid-19th century. Or visit the Jumeirah Mosque (one of the few mosques open to non-Muslims) and learn about Emirati culture. Spot some street art on Jumeirah Beach Road and grab a bite at a shawarma shop, or spend the day hunting for spices and perfume then round things out with a Michelin-starred meal. You can really do it all and we`ve got more recs, below.",
+		Price:       30000000,
+		AdminFee:    5000,
+		Discount:    10,
+		Start:       time.Now(),
+		Finish:      time.Now().Add(time.Hour * 48),
+		Quota:       25,
+		Thumbnail: tours.File{
+			Raw: strings.NewReader("case image"),
+		},
+		Picture: []tours.File{
+			{Raw: strings.NewReader("case image")},
+			{Raw: strings.NewReader("case image")},
+			{Raw: strings.NewReader("case image")},
+		},
+		Itinerary: []tours.Itinerary{
+			{Location: "location 1", Description: "description 1"},
+			{Location: "location 2", Description: "description 2"},
+			{Location: "location 3", Description: "description 3"},
+		},
+		FacilityInclude: []facilities.Facility{
+			{Id: 1},
+			{Id: 2},
+		},
+		Airline: airlines.Airline{
+			Id: 3,
+		},
+		Location: locations.Location{
+			Id: 1,
+		},
+	}
+
+	t.Run("invalid id", func(t *testing.T) {
+		result, err := srv.GetDetail(ctx, 0)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "id")
+		assert.Nil(t, result)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetDetail", ctx, uint(1)).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.GetDetail(ctx, 1)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		resultData := data
+
+		repo.On("GetDetail", ctx, uint(1)).Return(&resultData, nil).Once()
+
+		result, err := srv.GetDetail(ctx, 1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, &data, result)
+
+		repo.AssertExpectations(t)
+	})
+}
+
 func TestTourServiceCreate(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	srv := NewTourService(repo)
@@ -42,7 +114,7 @@ func TestTourServiceCreate(t *testing.T) {
 			{Location: "location 2", Description: "description 2"},
 			{Location: "location 3", Description: "description 3"},
 		},
-		Facility: []facilities.Facility{
+		FacilityInclude: []facilities.Facility{
 			{Id: 1},
 			{Id: 2},
 		},
@@ -206,7 +278,7 @@ func TestTourServiceUpdate(t *testing.T) {
 			{Location: "location 2", Description: "description 2"},
 			{Location: "location 3", Description: "description 3"},
 		},
-		Facility: []facilities.Facility{
+		FacilityInclude: []facilities.Facility{
 			{Id: 1},
 			{Id: 2},
 		},

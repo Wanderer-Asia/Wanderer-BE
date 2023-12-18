@@ -63,25 +63,25 @@ func (_m *Service) GetAll(ctx context.Context, flt filters.Filter) ([]tours.Tour
 	return r0, r1, r2
 }
 
-// GetDetail provides a mock function with given fields: ctx
-func (_m *Service) GetDetail(ctx context.Context) (*tours.Tour, error) {
-	ret := _m.Called(ctx)
+// GetDetail provides a mock function with given fields: ctx, id
+func (_m *Service) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 *tours.Tour
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*tours.Tour, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*tours.Tour, error)); ok {
+		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *tours.Tour); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *tours.Tour); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*tours.Tour)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
