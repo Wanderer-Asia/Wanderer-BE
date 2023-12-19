@@ -193,3 +193,39 @@ func TestLocationServiceDelete(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestLocationServiceGetByLocation(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewLocationService(repo)
+	ctx := context.Background()
+
+	t.Run("invalid id", func(t *testing.T) {
+		res, err := srv.GetDetail(ctx, uint(0))
+
+		assert.ErrorContains(t, err, "id")
+		assert.Nil(t, res)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetDetail", ctx, uint(1)).Return(nil, errors.New("error from repository")).Once()
+		res, err := srv.GetDetail(ctx, uint(1))
+
+		assert.ErrorContains(t, err, "error from repository")
+		assert.Nil(t, res)
+	})
+
+	t.Run("success case", func(t *testing.T) {
+		var caseData = &locations.Location{
+			Id:       1,
+			Name:     "Tokyo",
+			ImageRaw: strings.NewReader("example"),
+		}
+		repo.On("GetDetail", ctx, uint(1)).Return(caseData, nil).Once()
+		res, err := srv.GetDetail(ctx, uint(1))
+
+		assert.NoError(t, err)
+		assert.Equal(t, caseData, res)
+
+		repo.AssertExpectations(t)
+	})
+}

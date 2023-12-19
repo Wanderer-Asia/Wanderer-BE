@@ -39,6 +39,15 @@ func (srv *tourService) GetDetail(ctx context.Context, id uint) (*tours.Tour, er
 	return result, nil
 }
 
+func (srv *tourService) GetByLocation(ctx context.Context, id uint) ([]tours.Tour, error) {
+	result, err := srv.repo.GetByLocation(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (srv *tourService) Create(ctx context.Context, data tours.Tour) error {
 	if data.Title == "" {
 		return errors.New("validate: please fill title correctly")

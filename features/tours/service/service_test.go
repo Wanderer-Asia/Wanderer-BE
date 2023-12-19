@@ -503,3 +503,66 @@ func TestTourServiceUpdate(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestTourServiceGetByLocation(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewTourService(repo)
+	ctx := context.Background()
+
+	data := []tours.Tour{
+		{
+			Id:       1,
+			Title:    "Jepang Winter Golden Route & Mount Fuji",
+			Price:    30000000,
+			Discount: 10,
+			Start:    time.Now(),
+			Quota:    25,
+			Rating:   4.8,
+			Thumbnail: tours.File{
+				Raw: strings.NewReader("case image"),
+			},
+			Location: locations.Location{
+				Id: 1,
+			},
+		},
+		{
+			Id:       2,
+			Title:    "Jepang Winter Golden Route & Mount Fuji",
+			Price:    30000000,
+			Discount: 10,
+			Start:    time.Now(),
+			Quota:    25,
+			Rating:   4.8,
+			Thumbnail: tours.File{
+				Raw: strings.NewReader("case image"),
+			},
+			Location: locations.Location{
+				Id: 1,
+			},
+		},
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetByLocation", ctx, uint(1)).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.GetByLocation(ctx, uint(1))
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		resultData := data
+
+		repo.On("GetByLocation", ctx, uint(1)).Return(resultData, nil).Once()
+
+		result, err := srv.GetByLocation(ctx, uint(1))
+
+		assert.NoError(t, err)
+		assert.Equal(t, data, result)
+
+		repo.AssertExpectations(t)
+	})
+}

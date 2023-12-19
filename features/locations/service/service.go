@@ -73,3 +73,16 @@ func (srv *locationService) Delete(ctx context.Context, id uint) error {
 
 	return nil
 }
+
+func (srv *locationService) GetDetail(ctx context.Context, id uint) (*locations.Location, error) {
+	if id == 0 {
+		return nil, errors.New("validate: invalid lcation id")
+	}
+
+	result, err := srv.repo.GetDetail(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

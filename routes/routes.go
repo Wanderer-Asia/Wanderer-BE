@@ -4,8 +4,8 @@ import (
 	"wanderer/features/airlines"
 	"wanderer/features/facilities"
 	"wanderer/features/locations"
-	"wanderer/features/tours"
 	"wanderer/features/reviews"
+	"wanderer/features/tours"
 	"wanderer/features/users"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -51,6 +51,7 @@ func (router *Routes) LocationRouter() {
 	router.Server.POST("/locations", router.LocationHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.PUT("/locations/:id", router.LocationHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/locations/:id", router.LocationHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/locations/:id", router.LocationHandler.GetDetail())
 }
 
 func (router *Routes) FacilityRouter() {

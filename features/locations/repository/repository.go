@@ -121,3 +121,13 @@ func (repo *locationRepository) Delete(ctx context.Context, id uint) error {
 
 	return nil
 }
+
+func (repo *locationRepository) GetDetail(ctx context.Context, id uint) (*locations.Location, error) {
+	var mod = new(Location)
+
+	if err := repo.mysqlDB.Where(&Location{Id: id}).First(&mod).Error; err != nil {
+		return nil, err
+	}
+
+	return mod.ToEntity(), nil
+}

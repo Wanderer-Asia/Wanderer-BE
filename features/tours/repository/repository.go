@@ -121,6 +121,34 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 	return modTour.ToEntity(modFacilityExclude), nil
 }
 
+func (repo *tourRepository) GetByLocation(ctx context.Context, id uint) ([]tours.Tour, error) {
+	var mod []Tour
+
+	qry := repo.mysqlDB.WithContext(ctx).Model(&Tour{})
+
+	qry = qry.Select(
+		"tours.id",
+		"tours.title",
+		"tours.quota",
+		"tours.discount",
+		"tours.rating",
+		"tours.thumbnail",
+		"tours.start",
+	).Where("location_id = ?", id)
+
+	qry = qry.Joins("Location")
+	if err := qry.Find(&mod).Error; err != nil {
+		return nil, err
+	}
+
+	var result []tours.Tour
+	for _, tour := range mod {
+		result = append(result, *tour.ToEntity(nil))
+	}
+
+	return result, nil
+}
+
 func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 	var UniqueFilename = true
 

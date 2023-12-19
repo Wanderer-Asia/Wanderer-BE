@@ -23,6 +23,7 @@ type Location struct {
 
 type Handler interface {
 	GetAll() echo.HandlerFunc
+	GetDetail() echo.HandlerFunc
 	Create() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
@@ -30,6 +31,7 @@ type Handler interface {
 
 type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Location, error)
+	GetDetail(ctx context.Context, id uint) (*Location, error)
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error
@@ -37,6 +39,7 @@ type Service interface {
 
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Location, error)
+	GetDetail(ctx context.Context, id uint) (*Location, error)
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error
