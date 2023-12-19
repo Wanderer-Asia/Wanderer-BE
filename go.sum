@@ -37,6 +37,8 @@ github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27k
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.18 h1:DOKFKCQ7FNG2L1rbrmstDN4QVRdS89Nkh85u68Uwp98=
 github.com/mattn/go-isatty v0.0.18/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+github.com/midtrans/midtrans-go v1.3.7 h1:3vL9ydlVqp9VfRHDzOG17w1D6X9241jj6LQdPTxVE/g=
+github.com/midtrans/midtrans-go v1.3.7/go.mod h1:5hN2oiZDP3/SwSBxHPTg8eC/RVoRE9DXQOY1Ah9au10=
 github.com/monoculum/formam v3.5.5+incompatible h1:iPl5csfEN96G2N2mGu8V/ZB62XLf9ySTpC8KRH6qXec=
 github.com/monoculum/formam v3.5.5+incompatible/go.mod h1:RKgILGEJq24YyJ2ban8EO0RUVSJlF1pGsEvoLEACr/Q=
 github.com/monoculum/formam/v3 v3.6.0 h1:Lz7TOal1D8cCY2Hv1NGLdLX9Rm4xt/Gkpw4qC/RKTmc=
