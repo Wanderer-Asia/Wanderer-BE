@@ -6,22 +6,21 @@ import (
 	rr "wanderer/features/reviews/repository"
 	"wanderer/features/tours"
 	"wanderer/helpers/filters"
+	"wanderer/utils/files"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"gorm.io/gorm"
 )
 
-func NewTourRepository(mysqlDB *gorm.DB, cld *cloudinary.Cloudinary) tours.Repository {
+func NewTourRepository(mysqlDB *gorm.DB, cloud files.Cloud) tours.Repository {
 	return &tourRepository{
 		mysqlDB: mysqlDB,
-		cld:     cld,
+		cloud:   cloud,
 	}
 }
 
 type tourRepository struct {
 	mysqlDB *gorm.DB
-	cld     *cloudinary.Cloudinary
+	cloud   files.Cloud
 }
 
 func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]tours.Tour, int, error) {
@@ -122,8 +121,6 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 }
 
 func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
-	var UniqueFilename = true
-
 	var mod = new(Tour)
 	mod.FromEntity(data)
 	mod.Available = mod.Quota
@@ -137,16 +134,12 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 
 	err := tx.Transaction(func(txPict *gorm.DB) error {
 		for i := 0; i < len(data.Picture); i++ {
-			res, err := repo.cld.Upload.Upload(ctx, data.Picture[i].Raw, uploader.UploadParams{
-				UniqueFilename: &UniqueFilename,
-				Folder:         "tours",
-			})
-
+			url, err := repo.cloud.Upload(ctx, "tours", data.Picture[i].Raw)
 			if err != nil {
 				return err
 			}
 
-			mod.Picture[i].Url = res.URL
+			mod.Picture[i].Url = *url
 		}
 
 		if mod.Picture != nil {
@@ -161,17 +154,12 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 	}
 
 	err = tx.Transaction(func(txTour *gorm.DB) error {
-		res, err := repo.cld.Upload.Upload(ctx, data.Thumbnail.Raw, uploader.UploadParams{
-			UniqueFilename: &UniqueFilename,
-			Folder:         "tours",
-		})
-
+		url, err := repo.cloud.Upload(ctx, "tours", data.Thumbnail.Raw)
 		if err != nil {
 			return err
 		}
 
-		mod.ThumbnailUrl = res.URL
-
+		mod.ThumbnailUrl = *url
 		return txTour.Create(mod).Error
 	})
 	if err != nil {
@@ -187,8 +175,6 @@ func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
 }
 
 func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour) error {
-	var UniqueFilename = true
-
 	var mod = new(Tour)
 	mod.FromEntity(data)
 
@@ -201,16 +187,11 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 
 	err := tx.Transaction(func(txPict *gorm.DB) error {
 		for i := 0; i < len(data.Picture); i++ {
-			res, err := repo.cld.Upload.Upload(ctx, data.Picture[i].Raw, uploader.UploadParams{
-				UniqueFilename: &UniqueFilename,
-				Folder:         "tours",
-			})
-
+			url, err := repo.cloud.Upload(ctx, "tours", data.Picture[i].Raw)
 			if err != nil {
 				return err
 			}
-
-			mod.Picture[i].Url = res.URL
+			mod.Picture[i].Url = *url
 		}
 
 		if mod.Picture != nil {
@@ -245,16 +226,11 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 	}
 
 	err = tx.Transaction(func(txTour *gorm.DB) error {
-		res, err := repo.cld.Upload.Upload(ctx, data.Thumbnail.Raw, uploader.UploadParams{
-			UniqueFilename: &UniqueFilename,
-			Folder:         "tours",
-		})
-
+		url, err := repo.cloud.Upload(ctx, "tours", data.Thumbnail.Raw)
 		if err != nil {
 			return err
 		}
-
-		mod.ThumbnailUrl = res.URL
+		mod.ThumbnailUrl = *url
 
 		return txTour.Where(&Tour{Id: id}).Updates(mod).Error
 	})

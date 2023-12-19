@@ -5,6 +5,7 @@ import (
 	"wanderer/helpers/encrypt"
 	"wanderer/routes"
 	"wanderer/utils/database"
+	"wanderer/utils/files"
 
 	uh "wanderer/features/users/handler"
 	ur "wanderer/features/users/repository"
@@ -22,7 +23,6 @@ import (
 	fr "wanderer/features/facilities/repository"
 	fs "wanderer/features/facilities/service"
 
-
 	th "wanderer/features/tours/handler"
 	tr "wanderer/features/tours/repository"
 	ts "wanderer/features/tours/service"
@@ -31,7 +31,6 @@ import (
 	rr "wanderer/features/reviews/repository"
 	rs "wanderer/features/reviews/service"
 
-	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -61,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	cld, err := cloudinary.NewFromParams(cldConfig.CloudName, cldConfig.ApiKey, cldConfig.ApiSecret)
+	cld, err := files.NewCloudinary(*cldConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +86,7 @@ func main() {
 	tourRepository := tr.NewTourRepository(dbConnection, cld)
 	tourService := ts.NewTourService(tourRepository)
 	tourHandler := th.NewTourHandler(tourService)
-  
+
 	reviewRepository := rr.NewReviewRepository(dbConnection)
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)

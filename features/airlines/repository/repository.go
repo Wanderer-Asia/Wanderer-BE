@@ -5,37 +5,31 @@ import (
 	"errors"
 	"wanderer/features/airlines"
 	"wanderer/helpers/filters"
+	"wanderer/utils/files"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"gorm.io/gorm"
 )
 
-func NewAirlineRepository(mysqlDB *gorm.DB, cloudinary *cloudinary.Cloudinary) airlines.Repository {
+func NewAirlineRepository(mysqlDB *gorm.DB, cloud files.Cloud) airlines.Repository {
 	return &airlineRepository{
-		mysqlDB:    mysqlDB,
-		cloudinary: cloudinary,
+		mysqlDB: mysqlDB,
+		cloud:   cloud,
 	}
 }
 
 type airlineRepository struct {
-	mysqlDB    *gorm.DB
-	cloudinary *cloudinary.Cloudinary
+	mysqlDB *gorm.DB
+	cloud   files.Cloud
 }
 
 func (repo *airlineRepository) Create(newAirline airlines.Airline) error {
 	if newAirline.ImageRaw != nil {
-		UniqueFileName := true
-		res, err := repo.cloudinary.Upload.Upload(context.TODO(), newAirline.ImageRaw, uploader.UploadParams{
-			UniqueFilename: &UniqueFileName,
-			Folder:         "airlines",
-		})
-
+		url, err := repo.cloud.Upload(context.Background(), "airlines", newAirline.ImageRaw)
 		if err != nil {
 			return err
 		}
 
-		newAirline.ImageUrl = res.URL
+		newAirline.ImageUrl = *url
 	}
 
 	var model = new(Airline)
@@ -76,17 +70,12 @@ func (repo *airlineRepository) GetAll(flt filters.Filter) ([]airlines.Airline, e
 
 func (repo *airlineRepository) Update(id uint, updateAirline airlines.Airline) error {
 	if updateAirline.ImageRaw != nil {
-		UniqueFileName := true
-		res, err := repo.cloudinary.Upload.Upload(context.TODO(), updateAirline.ImageRaw, uploader.UploadParams{
-			UniqueFilename: &UniqueFileName,
-			Folder:         "airlines",
-		})
-
+		url, err := repo.cloud.Upload(context.Background(), "airlines", updateAirline.ImageRaw)
 		if err != nil {
 			return err
 		}
 
-		updateAirline.ImageUrl = res.URL
+		updateAirline.ImageUrl = *url
 	}
 
 	var model = new(Airline)
