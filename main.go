@@ -5,6 +5,7 @@ import (
 	"wanderer/helpers/encrypt"
 	"wanderer/routes"
 	"wanderer/utils/database"
+	"wanderer/utils/files"
 
 	uh "wanderer/features/users/handler"
 	ur "wanderer/features/users/repository"
@@ -30,7 +31,6 @@ import (
 	rr "wanderer/features/reviews/repository"
 	rs "wanderer/features/reviews/service"
 
-	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -60,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	cld, err := cloudinary.NewFromParams(cldConfig.CloudName, cldConfig.ApiKey, cldConfig.ApiSecret)
+	cld, err := files.NewCloudinary(*cldConfig)
 	if err != nil {
 		panic(err)
 	}

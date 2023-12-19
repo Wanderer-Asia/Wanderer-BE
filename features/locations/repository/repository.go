@@ -5,22 +5,21 @@ import (
 	"errors"
 	"wanderer/features/locations"
 	"wanderer/helpers/filters"
+	"wanderer/utils/files"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"gorm.io/gorm"
 )
 
-func NewLocationRepository(mysqlDB *gorm.DB, cld *cloudinary.Cloudinary) locations.Repository {
+func NewLocationRepository(mysqlDB *gorm.DB, cloud files.Cloud) locations.Repository {
 	return &locationRepository{
 		mysqlDB: mysqlDB,
-		cld:     cld,
+		cloud:   cloud,
 	}
 }
 
 type locationRepository struct {
 	mysqlDB *gorm.DB
-	cld     *cloudinary.Cloudinary
+	cloud   files.Cloud
 }
 
 func (repo *locationRepository) GetAll(ctx context.Context, flt filters.Filter) ([]locations.Location, error) {
@@ -54,17 +53,12 @@ func (repo *locationRepository) Create(ctx context.Context, data locations.Locat
 	mod.FromEntity(data)
 
 	if mod.ImageRaw != nil {
-		UniqueFilename := true
-		res, err := repo.cld.Upload.Upload(ctx, mod.ImageRaw, uploader.UploadParams{
-			UniqueFilename: &UniqueFilename,
-			Folder:         "locations",
-		})
-
+		url, err := repo.cloud.Upload(ctx, "locations", mod.ImageRaw)
 		if err != nil {
 			return err
 		}
 
-		mod.ImageUrl = res.URL
+		mod.ImageUrl = *url
 	}
 
 	qry := repo.mysqlDB.Create(mod)
@@ -84,17 +78,12 @@ func (repo *locationRepository) Update(ctx context.Context, id uint, data locati
 	mod.FromEntity(data)
 
 	if mod.ImageRaw != nil {
-		UniqueFilename := true
-		res, err := repo.cld.Upload.Upload(ctx, mod.ImageRaw, uploader.UploadParams{
-			UniqueFilename: &UniqueFilename,
-			Folder:         "locations",
-		})
-
+		url, err := repo.cloud.Upload(ctx, "locations", mod.ImageRaw)
 		if err != nil {
 			return err
 		}
 
-		mod.ImageUrl = res.URL
+		mod.ImageUrl = *url
 	}
 
 	qry := repo.mysqlDB.Where(&Location{Id: id}).Updates(mod)

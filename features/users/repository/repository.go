@@ -4,22 +4,21 @@ import (
 	"context"
 	"errors"
 	"wanderer/features/users"
+	"wanderer/utils/files"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"gorm.io/gorm"
 )
 
-func NewUserRepository(mysqlDB *gorm.DB, cloudinary *cloudinary.Cloudinary) users.Repository {
+func NewUserRepository(mysqlDB *gorm.DB, cloud files.Cloud) users.Repository {
 	return &userRepository{
-		mysqlDB:    mysqlDB,
-		cloudinary: cloudinary,
+		mysqlDB: mysqlDB,
+		cloud:   cloud,
 	}
 }
 
 type userRepository struct {
-	mysqlDB    *gorm.DB
-	cloudinary *cloudinary.Cloudinary
+	mysqlDB *gorm.DB
+	cloud   files.Cloud
 }
 
 func (repo *userRepository) Register(newUser users.User) error {
@@ -45,17 +44,12 @@ func (repo *userRepository) Login(email string) (*users.User, error) {
 
 func (repo *userRepository) Update(id uint, updateUser users.User) error {
 	if updateUser.ImageRaw != nil {
-		UniqueFileName := true
-		res, err := repo.cloudinary.Upload.Upload(context.TODO(), updateUser.ImageRaw, uploader.UploadParams{
-			UniqueFilename: &UniqueFileName,
-			Folder:         "users",
-		})
-
+		url, err := repo.cloud.Upload(context.Background(), "users", updateUser.ImageRaw)
 		if err != nil {
 			return err
 		}
 
-		updateUser.ImageUrl = res.URL
+		updateUser.ImageUrl = *url
 	}
 
 	var model = new(User)
