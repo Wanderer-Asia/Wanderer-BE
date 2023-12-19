@@ -74,6 +74,7 @@ type Handler interface {
 type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
 	GetDetail(ctx context.Context, id uint) (*Tour, error)
+	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
 }
@@ -81,6 +82,7 @@ type Service interface {
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
 	GetDetail(ctx context.Context, id uint) (*Tour, error)
+	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
 }

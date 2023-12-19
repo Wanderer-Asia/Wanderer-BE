@@ -69,6 +69,32 @@ func (_m *Service) GetAll(ctx context.Context, flt filters.Filter) ([]locations.
 	return r0, r1
 }
 
+// GetDetail provides a mock function with given fields: ctx, id
+func (_m *Service) GetDetail(ctx context.Context, id uint) (*locations.Location, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 *locations.Location
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*locations.Location, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *locations.Location); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*locations.Location)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: ctx, id, data
 func (_m *Service) Update(ctx context.Context, id uint, data locations.Location) error {
 	ret := _m.Called(ctx, id, data)

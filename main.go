@@ -75,10 +75,6 @@ func main() {
 	airlineService := as.NewAirlineService(airlineRepository)
 	airlineHandler := ah.NewAirlineHandler(airlineService)
 
-	locationRepository := lr.NewLocationRepository(dbConnection, cld)
-	locationService := ls.NewLocationService(locationRepository)
-	locationHandler := lh.NewLocationHandler(locationService)
-
 	facilityRepository := fr.NewFacilityRepository(dbConnection)
 	facilityService := fs.NewFacilityService(facilityRepository)
 	facilityHandler := fh.NewFacilityHandler(facilityService)
@@ -86,6 +82,10 @@ func main() {
 	tourRepository := tr.NewTourRepository(dbConnection, cld)
 	tourService := ts.NewTourService(tourRepository)
 	tourHandler := th.NewTourHandler(tourService)
+
+	locationRepository := lr.NewLocationRepository(dbConnection, cld)
+	locationService := ls.NewLocationService(locationRepository)
+	locationHandler := lh.NewLocationHandler(locationService, tourService)
 
 	reviewRepository := rr.NewReviewRepository(dbConnection)
 	reviewService := rs.NewReviewService(reviewRepository)

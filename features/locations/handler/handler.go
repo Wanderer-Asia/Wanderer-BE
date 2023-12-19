@@ -5,19 +5,22 @@ import (
 	"strconv"
 	"strings"
 	"wanderer/features/locations"
+	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-func NewLocationHandler(locationService locations.Service) locations.Handler {
+func NewLocationHandler(locationService locations.Service, tourService tours.Service) locations.Handler {
 	return &locationHandler{
 		locationService: locationService,
+		tourService:     tourService,
 	}
 }
 
 type locationHandler struct {
 	locationService locations.Service
+	tourService     tours.Service
 }
 
 func (hdl *locationHandler) GetAll() echo.HandlerFunc {
@@ -179,6 +182,65 @@ func (hdl *locationHandler) Delete() echo.HandlerFunc {
 		}
 
 		response["message"] = "delete location success"
+		return c.JSON(http.StatusOK, response)
+	}
+}
+
+func (hdl *locationHandler) GetDetail() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		locationId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid location id"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		location, err := hdl.locationService.GetDetail(c.Request().Context(), uint(locationId))
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "location not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		tours, err := hdl.tourService.GetByLocation(c.Request().Context(), uint(locationId))
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "location not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data = new(DetailLocationResponse)
+		if location != nil || tours != nil {
+			data.FromEntity(*location, tours)
+		}
+
+		response["message"] = "get detail location success"
+		response["data"] = data
 		return c.JSON(http.StatusOK, response)
 	}
 }
