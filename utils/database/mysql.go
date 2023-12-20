@@ -5,10 +5,11 @@ import (
 	"wanderer/config"
 
 	ar "wanderer/features/airlines/repository"
+	br "wanderer/features/bookings/repository"
 	fr "wanderer/features/facilities/repository"
 	lr "wanderer/features/locations/repository"
-	tr "wanderer/features/tours/repository"
 	rr "wanderer/features/reviews/repository"
+	tr "wanderer/features/tours/repository"
 	ur "wanderer/features/users/repository"
 
 	"gorm.io/driver/mysql"
@@ -34,6 +35,8 @@ func MysqlMigrate(db *gorm.DB) error {
 		&tr.Tour{},
 		&tr.Itinerary{},
 		&rr.Review{},
+		&br.Booking{},
+		&br.BookingDetail{},
 	)
 
 	if err != nil {

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"wanderer/features/airlines"
+	"wanderer/features/bookings"
 	"wanderer/features/facilities"
 	"wanderer/features/locations"
 	"wanderer/features/reviews"
@@ -21,6 +22,7 @@ type Routes struct {
 	FacilityHandler facilities.Handler
 	TourHandler     tours.Handler
 	ReviewHandler   reviews.Handler
+	BookingHandler  bookings.Handler
 }
 
 func (router Routes) InitRouter() {
@@ -30,6 +32,7 @@ func (router Routes) InitRouter() {
 	router.FacilityRouter()
 	router.TourRouter()
 	router.ReviewRouter()
+	router.BookingRouter()
 }
 
 func (router *Routes) UserRouter() {
@@ -70,4 +73,10 @@ func (router *Routes) TourRouter() {
 
 func (router *Routes) ReviewRouter() {
 	router.Server.POST("/reviews", router.ReviewHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+}
+
+func (router *Routes) BookingRouter() {
+	router.Server.POST("/bookings", router.BookingHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+
+	router.Server.POST("/payments", router.BookingHandler.PaymentNotification(), echojwt.JWT([]byte(router.JWTKey)))
 }

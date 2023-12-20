@@ -6,6 +6,7 @@ import (
 	"wanderer/routes"
 	"wanderer/utils/database"
 	"wanderer/utils/files"
+	"wanderer/utils/payments"
 
 	uh "wanderer/features/users/handler"
 	ur "wanderer/features/users/repository"
@@ -30,6 +31,10 @@ import (
 	rh "wanderer/features/reviews/handler"
 	rr "wanderer/features/reviews/repository"
 	rs "wanderer/features/reviews/service"
+
+	bh "wanderer/features/bookings/handler"
+	br "wanderer/features/bookings/repository"
+	bs "wanderer/features/bookings/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -65,6 +70,12 @@ func main() {
 		panic(err)
 	}
 
+	var mdtConfig = new(config.Midtrans)
+	if err := mdtConfig.LoadFromEnv(); err != nil {
+		panic(err)
+	}
+	mdt := payments.NewMidtrans(*mdtConfig)
+
 	enc := encrypt.NewBcrypt(10)
 
 	userRepository := ur.NewUserRepository(dbConnection, cld)
@@ -91,6 +102,10 @@ func main() {
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
 
+	bookingRepository := br.NewBookingRepository(dbConnection, mdt)
+	bookingService := bs.NewBookingService(bookingRepository)
+	bookingHandler := bh.NewBookingHandler(bookingService, *jwtConfig)
+
 	app := echo.New()
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
@@ -104,6 +119,7 @@ func main() {
 		FacilityHandler: facilityHandler,
 		TourHandler:     tourHandler,
 		ReviewHandler:   reviewHandler,
+		BookingHandler:  bookingHandler,
 	}
 
 	route.InitRouter()
