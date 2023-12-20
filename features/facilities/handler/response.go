@@ -3,7 +3,7 @@ package handler
 import "wanderer/features/facilities"
 
 type GetAllResponse struct {
-	Id   uint   `json:"id,omitempty"`
+	Id   uint   `json:"facility_id,omitempty"`
 	Name string `json:"name,omitempty"`
 }
 
