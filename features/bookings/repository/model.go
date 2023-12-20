@@ -15,7 +15,7 @@ import (
 type Booking struct {
 	Code      int            `gorm:"column:code; primaryKey;"`
 	Total     float64        `gorm:"column:total;"`
-	Status    string         `gorm:"column:status; type:enum('pending', 'approved', 'refund', 'refunded'); default:'pending'; index;"`
+	Status    string         `gorm:"column:status; type:enum('pending', 'cancel', 'approved', 'refund', 'refunded'); default:'pending'; index;"`
 	BookedAt  time.Time      `gorm:"autoCreateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 

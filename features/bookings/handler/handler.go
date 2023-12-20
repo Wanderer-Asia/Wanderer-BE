@@ -82,7 +82,54 @@ func (hdl *bookingHandler) Create() echo.HandlerFunc {
 }
 
 func (hdl *bookingHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(BookingCreateUpdateRequest)
+
+		bookingCode, err := strconv.Atoi(c.Param("code"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid booking code"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "please fill input correctly"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		result, err := hdl.bookingService.Update(c.Request().Context(), bookingCode, request.ToEntity(0))
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		if request.Status == "refund" {
+			response["message"] = "refund success"
+		} else if request.Status == "refunded" {
+			response["message"] = "approve refund success"
+		} else if request.Bank != "" {
+			var data = new(BookingResponse)
+			data.FromEntity(*result)
+
+			response["message"] = "change payment method success"
+			response["data"] = data
+		} else {
+			response["message"] = "update booking success"
+		}
+
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *bookingHandler) PaymentNotification() echo.HandlerFunc {

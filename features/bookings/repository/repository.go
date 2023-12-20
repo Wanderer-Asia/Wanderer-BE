@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"wanderer/features/bookings"
 	tr "wanderer/features/tours/repository"
 	ur "wanderer/features/users/repository"
@@ -72,11 +73,69 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 	modNewBooking.FromEntity(data)
 
 	var modOldBooking = new(Booking)
-	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).First(modOldBooking).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Joins("User").First(modOldBooking).Error; err != nil {
 		return nil, err
 	}
 
-	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Omit("Detail").Updates(modNewBooking).Error; err != nil {
+	var modOldBookingDetail []BookingDetail
+	if err := repo.mysqlDB.WithContext(ctx).Where(&BookingDetail{BookingCode: code}).Find(&modOldBookingDetail).Error; err != nil {
+		return nil, err
+	}
+	modOldBooking.Detail = modOldBookingDetail
+
+	tx := repo.mysqlDB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if modNewBooking.Payment.Bank != "" && modNewBooking.Payment.Bank != modOldBooking.Payment.Bank {
+		err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+			if err := repo.payment.CancelBookingPayment(code); err != nil {
+				return err
+			}
+
+			var retries = 2
+			var complete = false
+
+			for retries <= 2 || complete {
+				modOldBooking.Payment = modNewBooking.Payment
+				res, err := repo.payment.NewBookingPayment(*modOldBooking.ToEntity())
+				if err != nil && retries < 2 {
+					time.Sleep(50)
+					retries++
+
+					continue
+				} else if err != nil {
+					return err
+				} else {
+					var modPayment = new(Payment)
+					modPayment.FromEntity(*res)
+					data.Payment = *res
+					data.Total = modOldBooking.Total
+					modNewBooking.Payment = *modPayment
+					return nil
+				}
+			}
+
+			return nil
+		})
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+		return txTour.WithContext(ctx).Omit("Detail").Where(&Booking{Code: code}).Updates(modNewBooking).Error
+	})
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.WithContext(ctx).Commit().Error; err != nil {
 		return nil, err
 	}
 
