@@ -98,7 +98,7 @@ func main() {
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService, tourService)
 
-	reviewRepository := rr.NewReviewRepository(dbConnection)
+	reviewRepository := rr.NewReviewRepository(dbConnection, tourService)
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
 

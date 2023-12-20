@@ -147,3 +147,15 @@ func (srv *tourService) Update(ctx context.Context, id uint, data tours.Tour) er
 
 	return nil
 }
+
+func (srv *tourService) UpdateRating(ctx context.Context, id uint, data tours.Tour) error {
+	if id == 0 {
+		return errors.New("validate: invalid tour id")
+	}
+
+	if err := srv.repo.UpdateRating(ctx, id, data); err != nil {
+		return err
+	}
+
+	return nil
+}
