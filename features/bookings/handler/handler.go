@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/config"
 	"wanderer/features/bookings"
@@ -34,7 +36,7 @@ func (hdl *bookingHandler) GetDetail() echo.HandlerFunc {
 func (hdl *bookingHandler) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
-		var request = new(BookingCreateRequest)
+		var request = new(BookingCreateUpdateRequest)
 
 		token := c.Get("user")
 		if token == nil {
@@ -81,4 +83,54 @@ func (hdl *bookingHandler) Create() echo.HandlerFunc {
 
 func (hdl *bookingHandler) Update() echo.HandlerFunc {
 	panic("unimplemented")
+}
+
+func (hdl *bookingHandler) PaymentNotification() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var request = new(PaymentNotificationRequest)
+
+		if err := c.Bind(request); err != nil {
+			c.Logger().Error(err)
+
+			return c.JSON(http.StatusBadRequest, "bad request")
+		}
+
+		var data = new(bookings.Booking)
+
+		switch request.Status {
+		case "settlement":
+			data.Status = "approved"
+			data.Payment.Status = request.Status
+		case "cancel", "expire":
+			data.Status = "cancel"
+			data.Payment.Status = request.Status
+		case "capture", "deny", "pending":
+			data.Status = "pending"
+			data.Payment.Status = request.Status
+		default:
+			c.Logger().Error(errors.New("invalid payment status"))
+
+			return c.JSON(http.StatusBadRequest, "invalid payment status")
+		}
+
+		code, err := strconv.Atoi(request.Code)
+		if err != nil {
+			c.Logger().Error(err)
+
+			return c.JSON(http.StatusBadRequest, "bad request")
+		}
+
+		_, err = hdl.bookingService.Update(c.Request().Context(), code, *data)
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				return c.JSON(http.StatusBadRequest, strings.ReplaceAll(err.Error(), "validate: ", ""))
+			}
+
+			return c.JSON(http.StatusInternalServerError, "internal server error")
+		}
+
+		return c.JSON(http.StatusOK, "ok")
+	}
 }

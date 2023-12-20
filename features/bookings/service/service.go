@@ -68,6 +68,15 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 	return result, nil
 }
 
-func (srv *bookingService) Update(ctx context.Context, code int, data bookings.Booking) error {
-	panic("unimplemented")
+func (srv *bookingService) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
+	if code == 0 {
+		return nil, errors.New("validate: please fill booking code correctly")
+	}
+
+	result, err := srv.repo.Update(ctx, code, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -37,7 +37,6 @@ func MysqlMigrate(db *gorm.DB) error {
 		&rr.Review{},
 		&br.Booking{},
 		&br.BookingDetail{},
-		&br.Payment{},
 	)
 
 	if err != nil {

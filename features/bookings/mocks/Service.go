@@ -102,17 +102,29 @@ func (_m *Service) GetDetail(ctx context.Context, code int) (*bookings.Booking, 
 }
 
 // Update provides a mock function with given fields: ctx, code, data
-func (_m *Service) Update(ctx context.Context, code int, data bookings.Booking) error {
+func (_m *Service) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
 	ret := _m.Called(ctx, code, data)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, bookings.Booking) error); ok {
+	var r0 *bookings.Booking
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, bookings.Booking) (*bookings.Booking, error)); ok {
+		return rf(ctx, code, data)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, bookings.Booking) *bookings.Booking); ok {
 		r0 = rf(ctx, code, data)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*bookings.Booking)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, int, bookings.Booking) error); ok {
+		r1 = rf(ctx, code, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewService creates a new instance of Service. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

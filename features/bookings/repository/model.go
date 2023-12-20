@@ -15,7 +15,7 @@ import (
 type Booking struct {
 	Code      int            `gorm:"column:code; primaryKey;"`
 	Total     float64        `gorm:"column:total;"`
-	Status    string         `gorm:"column:status; type:enum('pending', 'approved', 'refund requested', 'refund approved', 'refunded'); default:'pending'; index;"`
+	Status    string         `gorm:"column:status; type:enum('pending', 'approved', 'refund', 'refunded'); default:'pending'; index;"`
 	BookedAt  time.Time      `gorm:"autoCreateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
@@ -26,7 +26,7 @@ type Booking struct {
 	Tour   tr.Tour `gorm:"foreignKey:TourId"`
 
 	Detail  []BookingDetail
-	Payment Payment
+	Payment Payment `gorm:"embedded;embeddedPrefix:payment_"`
 }
 
 func (mod *Booking) GenerateCode() (err error) {
@@ -56,6 +56,10 @@ func (mod *Booking) FromEntity(ent bookings.Booking) {
 		tmpDetail.FromEntity(detail)
 
 		mod.Detail = append(mod.Detail, *tmpDetail)
+	}
+
+	if ent.Status != "" {
+		mod.Status = ent.Status
 	}
 
 	if !reflect.ValueOf(ent.Payment).IsZero() {
@@ -191,7 +195,6 @@ func (mod *BookingDetail) ToEntity() bookings.Detail {
 }
 
 type Payment struct {
-	Id            uint   `gorm:"column:id; primaryKey;"`
 	Method        string `gorm:"column:method; type:varchar(20);"`
 	Bank          string `gorm:"column:bank; type:varchar(20);"`
 	VirtualNumber string `gorm:"column:virtual_number; type:varchar(50);"`
@@ -202,8 +205,6 @@ type Payment struct {
 	CreatedAt time.Time `gorm:"index"`
 	ExpiredAt time.Time
 	PaidAt    time.Time `gorm:"default:null;"`
-
-	BookingCode int
 }
 
 func (mod *Payment) FromEntity(ent bookings.Payment) {
@@ -243,10 +244,6 @@ func (mod *Payment) FromEntity(ent bookings.Payment) {
 func (mod *Payment) ToEntity() bookings.Payment {
 	var ent = new(bookings.Payment)
 
-	if mod.Id != 0 {
-		ent.Id = mod.Id
-	}
-
 	if mod.Method != "" {
 		ent.Method = mod.Method
 	}
@@ -281,10 +278,6 @@ func (mod *Payment) ToEntity() bookings.Payment {
 
 	if !mod.PaidAt.IsZero() {
 		ent.PaidAt = mod.PaidAt
-	}
-
-	if mod.BookingCode != 0 {
-		ent.BookingCode = mod.BookingCode
 	}
 
 	return *ent

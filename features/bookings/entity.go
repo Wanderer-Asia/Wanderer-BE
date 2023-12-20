@@ -60,18 +60,19 @@ type Handler interface {
 	GetDetail() echo.HandlerFunc
 	Create() echo.HandlerFunc
 	Update() echo.HandlerFunc
+	PaymentNotification() echo.HandlerFunc
 }
 
 type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
-	Update(ctx context.Context, code int, data Booking) error
+	Update(ctx context.Context, code int, data Booking) (*Booking, error)
 }
 
 type Repository interface {
 	GetAll(ctx context.Context) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
-	Update(ctx context.Context, code int, data Booking) error
+	Update(ctx context.Context, code int, data Booking) (*Booking, error)
 }

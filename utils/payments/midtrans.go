@@ -79,7 +79,7 @@ func (pay *midtrans) NewBookingPayment(data bookings.Booking) (*bookings.Payment
 	case "mandiri":
 		req.PaymentType = coreapi.PaymentTypeEChannel
 		req.EChannel = &coreapi.EChannelDetail{
-			BillInfo1: data.Tour.Title,
+			BillInfo1: "Wanderer Booking",
 			BillInfo2: fmt.Sprintf("%d person", len(data.Detail)),
 			BillKey:   fmt.Sprintf("%d", data.Code),
 		}
@@ -127,7 +127,7 @@ func (pay *midtrans) NewBookingPayment(data bookings.Booking) (*bookings.Payment
 
 func (pay *midtrans) CancelBookingPayment(code int) error {
 	res, _ := pay.client.CancelTransaction(fmt.Sprintf("%d", code))
-	if res.StatusCode != "200" {
+	if res.StatusCode != "200" && res.StatusCode != "412" {
 		return errors.New(res.StatusMessage)
 	}
 

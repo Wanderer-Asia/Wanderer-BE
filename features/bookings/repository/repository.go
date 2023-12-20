@@ -35,13 +35,13 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 	modBooking.FromEntity(data)
 
 	var modTour = new(tr.Tour)
-	if err := repo.mysqlDB.Where(&tr.Tour{Id: modBooking.TourId}).First(modTour).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Where(&tr.Tour{Id: modBooking.TourId}).First(modTour).Error; err != nil {
 		return nil, err
 	}
 	modBooking.Tour = *modTour
 
 	var modUser = new(ur.User)
-	if err := repo.mysqlDB.Where(&ur.User{Id: modBooking.UserId}).First(modUser).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Where(&ur.User{Id: modBooking.UserId}).First(modUser).Error; err != nil {
 		return nil, err
 	}
 	modBooking.User = *modUser
@@ -60,13 +60,25 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 	modPayment.FromEntity(*res)
 	modBooking.Payment = *modPayment
 
-	if err := repo.mysqlDB.Create(modBooking).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Create(modBooking).Error; err != nil {
 		return nil, err
 	}
 
 	return modBooking.ToEntity(), nil
 }
 
-func (repo *bookingRepository) Update(ctx context.Context, code int, data bookings.Booking) error {
-	panic("unimplemented")
+func (repo *bookingRepository) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
+	var modNewBooking = new(Booking)
+	modNewBooking.FromEntity(data)
+
+	var modOldBooking = new(Booking)
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).First(modOldBooking).Error; err != nil {
+		return nil, err
+	}
+
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Omit("Detail").Updates(modNewBooking).Error; err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }

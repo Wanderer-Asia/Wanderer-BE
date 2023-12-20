@@ -171,3 +171,68 @@ func TestBookingServiceCreate(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestBookingServiceUpdate(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	data := bookings.Booking{
+		Total:     10000,
+		Status:    "pending",
+		BookedAt:  time.Now(),
+		DeletedAt: time.Now(),
+		User: users.User{
+			Id: 1,
+		},
+		Tour: tours.Tour{
+			Id: 1,
+		},
+		Detail: []bookings.Detail{
+			{
+				DocumentNumber: "123",
+				Greeting:       "mr",
+				Name:           "maman",
+				Nationality:    "indonesia",
+				DOB:            time.Now(),
+			},
+		},
+		Payment: bookings.Payment{
+			Bank: "bri",
+		},
+	}
+
+	t.Run("invalid booking code", func(t *testing.T) {
+		caseData := data
+
+		result, err := srv.Update(ctx, 0, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "booking code")
+		assert.Nil(t, result)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := data
+		repo.On("Update", ctx, 123, caseData).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.Update(ctx, 123, caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := data
+		repo.On("Update", ctx, 123, caseData).Return(&caseData, nil).Once()
+
+		result, err := srv.Update(ctx, 123, caseData)
+
+		assert.NoError(t, err)
+		assert.Equal(t, &caseData, result)
+
+		repo.AssertExpectations(t)
+	})
+}

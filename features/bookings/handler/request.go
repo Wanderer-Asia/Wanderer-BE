@@ -5,13 +5,14 @@ import (
 	"wanderer/features/bookings"
 )
 
-type BookingCreateRequest struct {
+type BookingCreateUpdateRequest struct {
 	TourId uint                         `json:"tour_id"`
 	Detail []BookingDetailCreateRequest `json:"detail"`
 	Bank   string                       `json:"payment_method"`
+	Status string                       `json:"status"`
 }
 
-func (req *BookingCreateRequest) ToEntity(userId uint) bookings.Booking {
+func (req *BookingCreateUpdateRequest) ToEntity(userId uint) bookings.Booking {
 	var ent = new(bookings.Booking)
 
 	if req.TourId != 0 {
@@ -28,6 +29,10 @@ func (req *BookingCreateRequest) ToEntity(userId uint) bookings.Booking {
 
 	if req.Bank != "" {
 		ent.Payment.Bank = req.Bank
+	}
+
+	if req.Status != "" {
+		ent.Status = req.Status
 	}
 
 	return *ent
@@ -65,4 +70,9 @@ func (req *BookingDetailCreateRequest) ToEntity() bookings.Detail {
 	}
 
 	return *ent
+}
+
+type PaymentNotificationRequest struct {
+	Code   string `json:"order_id"`
+	Status string `json:"transaction_status"`
 }
