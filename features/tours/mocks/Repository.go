@@ -129,6 +129,20 @@ func (_m *Repository) Update(ctx context.Context, id uint, data tours.Tour) erro
 	return r0
 }
 
+// UpdateRating provides a mock function with given fields: ctx, id, data
+func (_m *Repository) UpdateRating(ctx context.Context, id uint, data tours.Tour) error {
+	ret := _m.Called(ctx, id, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, tours.Tour) error); ok {
+		r0 = rf(ctx, id, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {

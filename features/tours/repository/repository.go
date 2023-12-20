@@ -273,3 +273,15 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 
 	return nil
 }
+
+func (repo *tourRepository) UpdateRating(ctx context.Context, id uint, data tours.Tour) error {
+	var model = new(Tour)
+	model.FromEntity(data)
+	model.Rating = data.Rating
+
+	if err := repo.mysqlDB.Where(&Tour{Id: id}).Updates(model).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

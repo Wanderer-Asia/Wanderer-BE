@@ -77,6 +77,7 @@ type Service interface {
 	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
+	UpdateRating(ctx context.Context, id uint, data Tour) error
 }
 
 type Repository interface {
@@ -85,4 +86,5 @@ type Repository interface {
 	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
+	UpdateRating(ctx context.Context, id uint, data Tour) error
 }

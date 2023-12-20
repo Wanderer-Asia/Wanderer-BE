@@ -566,3 +566,41 @@ func TestTourServiceGetByLocation(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestTourServiceUpdateRating(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewTourService(repo)
+	ctx := context.Background()
+
+	var data = tours.Tour{
+		Rating: 4.5,
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("UpdateRating", ctx, uint(1), data).Return(errors.New("some error from repository")).Once()
+
+		err := srv.UpdateRating(ctx, uint(1), data)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		err := srv.UpdateRating(ctx, uint(0), data)
+
+		assert.ErrorContains(t, err, "id")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		repo.On("UpdateRating", ctx, uint(1), data).Return(nil).Once()
+
+		err := srv.UpdateRating(ctx, uint(1), data)
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

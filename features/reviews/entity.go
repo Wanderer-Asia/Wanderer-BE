@@ -24,8 +24,10 @@ type Handler interface {
 
 type Repository interface {
 	Create(userId uint, newReview Review) error
+	// GetByTourId(tourId uint) ([]Review, error)
 }
 
 type Service interface {
 	Create(userId uint, newReview Review) error
+	// GetAverage(tourId uint) (float32, error)
 }
