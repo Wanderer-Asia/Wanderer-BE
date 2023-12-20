@@ -76,7 +76,10 @@ func (router *Routes) ReviewRouter() {
 }
 
 func (router *Routes) BookingRouter() {
+	router.Server.GET("/bookings", router.BookingHandler.GetAll(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.POST("/bookings", router.BookingHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/bookings/:code", router.BookingHandler.GetDetail(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.PATCH("/bookings/:code", router.BookingHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 
 	router.Server.POST("/payments", router.BookingHandler.PaymentNotification())
 }

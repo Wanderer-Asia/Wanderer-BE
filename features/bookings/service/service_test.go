@@ -9,9 +9,156 @@ import (
 	"wanderer/features/bookings/mocks"
 	"wanderer/features/tours"
 	"wanderer/features/users"
+	"wanderer/helpers/filters"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestBookingServiceGetAll(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	data := []bookings.Booking{
+		{
+			Code:      123,
+			Total:     10000,
+			Status:    "pending",
+			BookedAt:  time.Now(),
+			DeletedAt: time.Now(),
+			User: users.User{
+				Id: 1,
+			},
+			Tour: tours.Tour{
+				Id: 1,
+			},
+			Detail: []bookings.Detail{
+				{
+					DocumentNumber: "123",
+					Greeting:       "mr",
+					Name:           "maman",
+					Nationality:    "indonesia",
+					DOB:            time.Now(),
+				},
+			},
+			Payment: bookings.Payment{
+				Bank: "bri",
+			},
+		},
+		{
+			Code:      234,
+			Total:     10000,
+			Status:    "pending",
+			BookedAt:  time.Now(),
+			DeletedAt: time.Now(),
+			User: users.User{
+				Id: 1,
+			},
+			Tour: tours.Tour{
+				Id: 1,
+			},
+			Detail: []bookings.Detail{
+				{
+					DocumentNumber: "123",
+					Greeting:       "mr",
+					Name:           "maman",
+					Nationality:    "indonesia",
+					DOB:            time.Now(),
+				},
+			},
+			Payment: bookings.Payment{
+				Bank: "bri",
+			},
+		},
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetAll", ctx, filters.Filter{}).Return(nil, 0, errors.New("some error from repository")).Once()
+
+		result, totalData, err := srv.GetAll(ctx, filters.Filter{})
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Equal(t, 0, totalData)
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := data
+		repo.On("GetAll", ctx, filters.Filter{}).Return(caseData, 2, nil).Once()
+
+		result, totalData, err := srv.GetAll(ctx, filters.Filter{})
+
+		assert.NoError(t, err)
+		assert.Equal(t, 2, totalData)
+		assert.Equal(t, caseData, result)
+
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestBookingServiceGetDetail(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	data := bookings.Booking{
+		Total:     10000,
+		Status:    "pending",
+		BookedAt:  time.Now(),
+		DeletedAt: time.Now(),
+		User: users.User{
+			Id: 1,
+		},
+		Tour: tours.Tour{
+			Id: 1,
+		},
+		Detail: []bookings.Detail{
+			{
+				DocumentNumber: "123",
+				Greeting:       "mr",
+				Name:           "maman",
+				Nationality:    "indonesia",
+				DOB:            time.Now(),
+			},
+		},
+		Payment: bookings.Payment{
+			Bank: "bri",
+		},
+	}
+
+	t.Run("invalid booking code", func(t *testing.T) {
+		result, err := srv.GetDetail(ctx, 0)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "booking code")
+		assert.Nil(t, result)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetDetail", ctx, 123).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.GetDetail(ctx, 123)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := data
+		repo.On("GetDetail", ctx, 123).Return(&caseData, nil).Once()
+
+		result, err := srv.GetDetail(ctx, 123)
+
+		assert.NoError(t, err)
+		assert.Equal(t, &caseData, result)
+
+		repo.AssertExpectations(t)
+	})
+}
 
 func TestBookingServiceCreate(t *testing.T) {
 	repo := mocks.NewRepository(t)
