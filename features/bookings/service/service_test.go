@@ -13,6 +13,68 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBookingServiceGetDetail(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	data := bookings.Booking{
+		Total:     10000,
+		Status:    "pending",
+		BookedAt:  time.Now(),
+		DeletedAt: time.Now(),
+		User: users.User{
+			Id: 1,
+		},
+		Tour: tours.Tour{
+			Id: 1,
+		},
+		Detail: []bookings.Detail{
+			{
+				DocumentNumber: "123",
+				Greeting:       "mr",
+				Name:           "maman",
+				Nationality:    "indonesia",
+				DOB:            time.Now(),
+			},
+		},
+		Payment: bookings.Payment{
+			Bank: "bri",
+		},
+	}
+
+	t.Run("invalid booking code", func(t *testing.T) {
+		result, err := srv.GetDetail(ctx, 0)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "booking code")
+		assert.Nil(t, result)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("GetDetail", ctx, 123).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.GetDetail(ctx, 123)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		caseData := data
+		repo.On("GetDetail", ctx, 123).Return(&caseData, nil).Once()
+
+		result, err := srv.GetDetail(ctx, 123)
+
+		assert.NoError(t, err)
+		assert.Equal(t, &caseData, result)
+
+		repo.AssertExpectations(t)
+	})
+}
+
 func TestBookingServiceCreate(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	srv := NewBookingService(repo)

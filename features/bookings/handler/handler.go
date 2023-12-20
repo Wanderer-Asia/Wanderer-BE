@@ -30,7 +30,40 @@ func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
 }
 
 func (hdl *bookingHandler) GetDetail() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		bookingCode, err := strconv.Atoi(c.Param("code"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "invalid booking code"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		result, err := hdl.bookingService.GetDetail(c.Request().Context(), bookingCode)
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "booking not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		if result != nil {
+			var data = new(BookingResponse)
+			data.FromEntity(*result)
+
+			response["data"] = data
+		}
+
+		response["message"] = "get detail booking success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *bookingHandler) Create() echo.HandlerFunc {

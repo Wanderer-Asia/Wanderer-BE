@@ -22,7 +22,16 @@ func (srv *bookingService) GetAll(ctx context.Context, flt filters.Filter) ([]bo
 }
 
 func (srv *bookingService) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {
-	panic("unimplemented")
+	if code == 0 {
+		return nil, errors.New("validate: please fill booking code correctly")
+	}
+
+	result, err := srv.repo.GetDetail(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*bookings.Booking, error) {

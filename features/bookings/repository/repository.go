@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 	"wanderer/features/bookings"
+	"wanderer/features/tours"
 	tr "wanderer/features/tours/repository"
 	ur "wanderer/features/users/repository"
 	"wanderer/utils/payments"
@@ -11,16 +12,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewBookingRepository(mysqlDB *gorm.DB, payment payments.Midtrans) bookings.Repository {
+func NewBookingRepository(mysqlDB *gorm.DB, tourRepository tours.Repository, payment payments.Midtrans) bookings.Repository {
 	return &bookingRepository{
-		mysqlDB: mysqlDB,
-		payment: payment,
+		mysqlDB:  mysqlDB,
+		payment:  payment,
+		tourRepo: tourRepository,
 	}
 }
 
 type bookingRepository struct {
-	mysqlDB *gorm.DB
-	payment payments.Midtrans
+	mysqlDB  *gorm.DB
+	payment  payments.Midtrans
+	tourRepo tours.Repository
 }
 
 func (repo *bookingRepository) GetAll(ctx context.Context) ([]bookings.Booking, int, error) {
@@ -28,7 +31,25 @@ func (repo *bookingRepository) GetAll(ctx context.Context) ([]bookings.Booking, 
 }
 
 func (repo *bookingRepository) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {
-	panic("unimplemented")
+	var mod = new(Booking)
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Joins("User").First(mod).Error; err != nil {
+		return nil, err
+	}
+	data := mod.ToEntity()
+
+	var modBookinDetail []BookingDetail
+	if err := repo.mysqlDB.WithContext(ctx).Where(&BookingDetail{BookingCode: code}).Find(&modBookinDetail).Error; err != nil {
+		return nil, err
+	}
+	mod.Detail = modBookinDetail
+
+	modTour, err := repo.tourRepo.GetDetail(ctx, mod.TourId)
+	if err != nil {
+		return nil, err
+	}
+	data.Tour = *modTour
+
+	return data, nil
 }
 
 func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking) (*bookings.Booking, error) {

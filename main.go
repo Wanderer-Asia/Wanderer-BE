@@ -102,7 +102,7 @@ func main() {
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
 
-	bookingRepository := br.NewBookingRepository(dbConnection, mdt)
+	bookingRepository := br.NewBookingRepository(dbConnection, tourRepository, mdt)
 	bookingService := bs.NewBookingService(bookingRepository)
 	bookingHandler := bh.NewBookingHandler(bookingService, *jwtConfig)
 
