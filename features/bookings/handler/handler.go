@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"wanderer/config"
 	"wanderer/features/bookings"
+	"wanderer/helpers/filters"
 	"wanderer/helpers/tokens"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -26,7 +28,43 @@ type bookingHandler struct {
 }
 
 func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		var pagination = new(filters.Pagination)
+		c.Bind(pagination)
+		if pagination.Limit == 0 {
+			pagination.Limit = 5
+		}
+
+		var search = new(filters.Search)
+		c.Bind(search)
+
+		var sort = new(filters.Sort)
+		c.Bind(sort)
+
+		result, totalData, err := hdl.bookingService.GetAll(context.Background(), filters.Filter{Pagination: *pagination, Sort: *sort})
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["totalData"] = totalData
+
+		var data []BookingResponse
+		for _, booking := range result {
+			var tmpBooking = new(BookingResponse)
+			tmpBooking.FromEntity(booking)
+
+			data = append(data, *tmpBooking)
+		}
+		response["data"] = data
+
+		response["message"] = "get all tour success"
+		return c.JSON(http.StatusOK, response)
+	}
 }
 
 func (hdl *bookingHandler) GetDetail() echo.HandlerFunc {

@@ -6,6 +6,8 @@ import (
 	context "context"
 	bookings "wanderer/features/bookings"
 
+	filters "wanderer/helpers/filters"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -40,32 +42,32 @@ func (_m *Repository) Create(ctx context.Context, data bookings.Booking) (*booki
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: ctx
-func (_m *Repository) GetAll(ctx context.Context) ([]bookings.Booking, int, error) {
-	ret := _m.Called(ctx)
+// GetAll provides a mock function with given fields: ctx, flt
+func (_m *Repository) GetAll(ctx context.Context, flt filters.Filter) ([]bookings.Booking, int, error) {
+	ret := _m.Called(ctx, flt)
 
 	var r0 []bookings.Booking
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]bookings.Booking, int, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, filters.Filter) ([]bookings.Booking, int, error)); ok {
+		return rf(ctx, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []bookings.Booking); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, filters.Filter) []bookings.Booking); ok {
+		r0 = rf(ctx, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]bookings.Booking)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) int); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, filters.Filter) int); ok {
+		r1 = rf(ctx, flt)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
-		r2 = rf(ctx)
+	if rf, ok := ret.Get(2).(func(context.Context, filters.Filter) error); ok {
+		r2 = rf(ctx, flt)
 	} else {
 		r2 = ret.Error(2)
 	}

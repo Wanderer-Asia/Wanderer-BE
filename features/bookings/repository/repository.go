@@ -7,6 +7,7 @@ import (
 	"wanderer/features/tours"
 	tr "wanderer/features/tours/repository"
 	ur "wanderer/features/users/repository"
+	"wanderer/helpers/filters"
 	"wanderer/utils/payments"
 
 	"gorm.io/gorm"
@@ -26,8 +27,32 @@ type bookingRepository struct {
 	tourRepo tours.Repository
 }
 
-func (repo *bookingRepository) GetAll(ctx context.Context) ([]bookings.Booking, int, error) {
-	panic("unimplemented")
+func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) ([]bookings.Booking, int, error) {
+	var mod []Booking
+	var totalData int64
+	var data []bookings.Booking
+
+	qry := repo.mysqlDB.WithContext(ctx).Model(&Booking{})
+
+	if flt.Pagination.Limit != 0 {
+		qry = qry.Limit(flt.Pagination.Limit)
+	}
+
+	if flt.Pagination.Start != 0 {
+		qry = qry.Offset(flt.Pagination.Start)
+	}
+
+	qry.Count(&totalData)
+
+	if err := qry.Joins("Tour").Joins("Tour.Location").Joins("User").Find(&mod).Error; err != nil {
+		return nil, int(totalData), err
+	}
+
+	for _, booking := range mod {
+		data = append(data, *booking.ToEntity())
+	}
+
+	return data, int(totalData), nil
 }
 
 func (repo *bookingRepository) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {

@@ -18,7 +18,12 @@ type bookingService struct {
 }
 
 func (srv *bookingService) GetAll(ctx context.Context, flt filters.Filter) ([]bookings.Booking, int, error) {
-	panic("unimplemented")
+	result, totalData, err := srv.repo.GetAll(ctx, flt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result, totalData, nil
 }
 
 func (srv *bookingService) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {
