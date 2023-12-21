@@ -28,7 +28,7 @@ func (hdl *facilityHandler) Create() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "incorrect input data"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -37,14 +37,14 @@ func (hdl *facilityHandler) Create() echo.HandlerFunc {
 		if err := hdl.facilityService.Create(*data); err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "Duplicate") {
-				response["message"] = "this facility is already in the system"
-				return c.JSON(http.StatusConflict, response)
-			}
-
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
 			}
 
 			response["message"] = "internal server error"
@@ -109,18 +109,18 @@ func (hdl *facilityHandler) Update() echo.HandlerFunc {
 		if err := hdl.facilityService.Update(uint(id), *request.ToEntity()); err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "Duplicate") {
-				response["message"] = "this facility is already in the system"
-				return c.JSON(http.StatusConflict, response)
-			}
-
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
+
 			if strings.Contains(err.Error(), "not found: ") {
-				response["message"] = "facility not found"
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -146,6 +146,11 @@ func (hdl *facilityHandler) Delete() echo.HandlerFunc {
 
 		if err := hdl.facilityService.Delete(uint(id)); err != nil {
 			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
 
 			if strings.Contains(err.Error(), "not found: ") {
 				response["message"] = "facility not found"

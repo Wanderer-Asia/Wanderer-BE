@@ -13,7 +13,6 @@ type Facility struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt time.Time
 }
 
 type Handler interface {
