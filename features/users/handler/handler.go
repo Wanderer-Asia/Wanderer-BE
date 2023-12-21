@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"wanderer/config"
 	"wanderer/features/users"
@@ -206,6 +207,44 @@ func (hdl *userHandler) Delete() echo.HandlerFunc {
 		}
 
 		response["message"] = "delete user success"
+		return c.JSON(http.StatusOK, response)
+	}
+}
+
+func (hdl *userHandler) GetById() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "ivalid user id"
+		}
+
+		result, err := hdl.userService.GetById(uint(id))
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found") {
+				response["message"] = "user not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data = new(UserByIdResponse)
+		data.FromEntity(*result)
+
+		response["message"] = "get profile user success"
+		response["data"] = data
 		return c.JSON(http.StatusOK, response)
 	}
 }

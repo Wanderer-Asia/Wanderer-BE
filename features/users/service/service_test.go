@@ -330,3 +330,64 @@ func TestUserServiceDelete(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestUserServiceGetById(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var enc = encMock.NewBcryptHash(t)
+	var srv = service.NewUserService(repo, enc)
+
+	t.Run("invalid user id", func(t *testing.T) {
+		var id = uint(0)
+
+		res, err := srv.GetById(id)
+
+		assert.ErrorContains(t, err, "user id")
+		assert.Nil(t, res)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		var id = uint(1)
+
+		repo.On("GetById", id).Return(nil, errors.New("some error from repository")).Once()
+
+		res, err := srv.GetById(id)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, res)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		var id = uint(1)
+
+		var data = &users.User{
+			Id:          1,
+			Name:        "Galih",
+			Email:       "galihp@gmail.com",
+			ImageUrl:    "example",
+			TourCount:   3,
+			ReviewCount: 2,
+			Bookings: []users.Booking{
+				{
+					Code:        13123112113,
+					DetailCount: 2,
+					Status:      "Pending",
+					Tour: users.Tour{
+						Id:    1,
+						Title: "Tour to Rome",
+					},
+				},
+			},
+		}
+
+		repo.On("GetById", id).Return(data, nil).Once()
+
+		res, err := srv.GetById(1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, res, data)
+
+		repo.AssertExpectations(t)
+	})
+}

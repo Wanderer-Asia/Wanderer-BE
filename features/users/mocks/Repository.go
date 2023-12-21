@@ -27,6 +27,32 @@ func (_m *Repository) Delete(id uint) error {
 	return r0
 }
 
+// GetById provides a mock function with given fields: id
+func (_m *Repository) GetById(id uint) (*users.User, error) {
+	ret := _m.Called(id)
+
+	var r0 *users.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(uint) (*users.User, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(uint) *users.User); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*users.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Login provides a mock function with given fields: email
 func (_m *Repository) Login(email string) (*users.User, error) {
 	ret := _m.Called(email)
