@@ -74,3 +74,13 @@ func (repo *userRepository) Delete(id uint) error {
 
 	return nil
 }
+
+func (repo *userRepository) GetById(id uint) (*users.User, error) {
+	var model = new(User)
+
+	if err := repo.mysqlDB.Preload("Bookings").Preload("Bookings.BookingDetails").Preload("Bookings.Tour").Preload("Reviews").Where("id = ?", id).First(model).Error; err != nil {
+		return nil, err
+	}
+
+	return model.ToEntity(), nil
+}
