@@ -112,6 +112,17 @@ func TestAirlineServiceUpdate(t *testing.T) {
 		assert.ErrorContains(t, err, "id")
 	})
 
+	t.Run("invalid name", func(t *testing.T) {
+		var caseData = airlines.Airline{
+			Name:     "",
+			ImageUrl: "test",
+		}
+
+		err := srv.Update(uint(1), caseData)
+
+		assert.ErrorContains(t, err, "name")
+	})
+
 	t.Run("error from repository", func(t *testing.T) {
 		var caseData = airlines.Airline{
 			Name:     "Test Air",

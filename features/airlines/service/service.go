@@ -42,6 +42,10 @@ func (srv *airlineService) Update(id uint, updateAirline airlines.Airline) error
 		return errors.New("validate: invalid airline id")
 	}
 
+	if updateAirline.Name == "" {
+		return errors.New("validate: name can't be empty")
+	}
+
 	if err := srv.repo.Update(id, updateAirline); err != nil {
 		return err
 	}

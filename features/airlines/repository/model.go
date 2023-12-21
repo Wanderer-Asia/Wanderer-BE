@@ -3,18 +3,15 @@ package repository
 import (
 	"time"
 	"wanderer/features/airlines"
-
-	"gorm.io/gorm"
 )
 
 type Airline struct {
 	Id    uint   `gorm:"column:id; primaryKey;"`
 	Name  string `gorm:"column:name; type:varchar(55); unique;"`
-	Image string `gorm:"column:image; type:text;"`
+	Image string `gorm:"column:image; type:text; default:null;"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (mod *Airline) FromEntity(ent airlines.Airline) {
@@ -25,7 +22,6 @@ func (mod *Airline) FromEntity(ent airlines.Airline) {
 	if ent.ImageUrl != "" {
 		mod.Image = ent.ImageUrl
 	}
-
 }
 
 func (mod *Airline) ToEntity() *airlines.Airline {
@@ -49,10 +45,6 @@ func (mod *Airline) ToEntity() *airlines.Airline {
 
 	if !mod.UpdatedAt.IsZero() {
 		ent.UpdatedAt = mod.UpdatedAt
-	}
-
-	if !mod.DeletedAt.Time.IsZero() {
-		ent.DeletedAt = mod.DeletedAt.Time
 	}
 
 	return ent
