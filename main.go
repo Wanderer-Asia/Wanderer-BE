@@ -36,6 +36,10 @@ import (
 	br "wanderer/features/bookings/repository"
 	bs "wanderer/features/bookings/service"
 
+	reh "wanderer/features/reports/handler"
+	rer "wanderer/features/reports/repository"
+	res "wanderer/features/reports/service"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -106,6 +110,10 @@ func main() {
 	bookingService := bs.NewBookingService(bookingRepository)
 	bookingHandler := bh.NewBookingHandler(bookingService, *jwtConfig)
 
+	reportRepository := rer.NewReportRepository(dbConnection)
+	reportService := res.NewReportService(reportRepository)
+	reportHandler := reh.NewReportHandler(reportService)
+
 	app := echo.New()
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
@@ -120,6 +128,7 @@ func main() {
 		TourHandler:     tourHandler,
 		ReviewHandler:   reviewHandler,
 		BookingHandler:  bookingHandler,
+		ReportHandler:   reportHandler,
 	}
 
 	route.InitRouter()

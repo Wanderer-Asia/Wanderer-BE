@@ -5,6 +5,7 @@ import (
 	"wanderer/features/bookings"
 	"wanderer/features/facilities"
 	"wanderer/features/locations"
+	"wanderer/features/reports"
 	"wanderer/features/reviews"
 	"wanderer/features/tours"
 	"wanderer/features/users"
@@ -23,6 +24,7 @@ type Routes struct {
 	TourHandler     tours.Handler
 	ReviewHandler   reviews.Handler
 	BookingHandler  bookings.Handler
+	ReportHandler   reports.Handler
 }
 
 func (router Routes) InitRouter() {
@@ -33,6 +35,7 @@ func (router Routes) InitRouter() {
 	router.TourRouter()
 	router.ReviewRouter()
 	router.BookingRouter()
+	router.ReportRouter()
 }
 
 func (router *Routes) UserRouter() {
@@ -82,4 +85,8 @@ func (router *Routes) BookingRouter() {
 	router.Server.PATCH("/bookings/:code", router.BookingHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 
 	router.Server.POST("/payments", router.BookingHandler.PaymentNotification())
+}
+
+func (router *Routes) ReportRouter() {
+	router.Server.GET("/reports", router.ReportHandler.Dashboard(), echojwt.JWT([]byte(router.JWTKey)))
 }
