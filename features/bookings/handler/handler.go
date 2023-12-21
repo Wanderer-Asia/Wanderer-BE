@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -30,10 +31,11 @@ type bookingHandler struct {
 func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
+		var baseUrl = c.Scheme() + "://" + c.Request().Host
 
 		var pagination = new(filters.Pagination)
 		c.Bind(pagination)
-		if pagination.Limit == 0 {
+		if pagination.Start != 0 && pagination.Limit == 0 {
 			pagination.Limit = 5
 		}
 
@@ -51,16 +53,40 @@ func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		response["totalData"] = totalData
-
 		var data []BookingResponse
 		for _, booking := range result {
 			var tmpBooking = new(BookingResponse)
 			tmpBooking.FromEntity(booking)
 
+			tmpBooking.User.Image = ""
+
 			data = append(data, *tmpBooking)
 		}
 		response["data"] = data
+
+		if pagination.Limit != 0 {
+			var paginationResponse = make(map[string]any)
+			if pagination.Start >= (pagination.Limit) {
+				prev := fmt.Sprintf("%s%s?start=%d&limit=%d", baseUrl, c.Path(), pagination.Start-pagination.Limit, pagination.Limit)
+				if search.Keyword != "" {
+					prev += "&keyword=" + search.Keyword
+				}
+				paginationResponse["prev"] = prev
+			} else {
+				paginationResponse["prev"] = nil
+			}
+
+			if totalData > pagination.Start+pagination.Limit {
+				next := fmt.Sprintf("%s%s?start=%d&limit=%d", baseUrl, c.Path(), pagination.Start+pagination.Limit, pagination.Limit)
+				if search.Keyword != "" {
+					next += "&keyword=" + search.Keyword
+				}
+				paginationResponse["next"] = next
+			} else {
+				paginationResponse["next"] = nil
+			}
+			response["pagination"] = paginationResponse
+		}
 
 		response["message"] = "get all tour success"
 		return c.JSON(http.StatusOK, response)
@@ -83,8 +109,8 @@ func (hdl *bookingHandler) GetDetail() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "booking not found"
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -126,7 +152,7 @@ func (hdl *bookingHandler) Create() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "please fill input correctly"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -137,6 +163,11 @@ func (hdl *bookingHandler) Create() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
+				return c.JSON(http.StatusNotFound, response)
 			}
 
 			response["message"] = "internal server error"
@@ -168,7 +199,7 @@ func (hdl *bookingHandler) Update() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "please fill input correctly"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -179,6 +210,11 @@ func (hdl *bookingHandler) Update() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
+				return c.JSON(http.StatusNotFound, response)
 			}
 
 			response["message"] = "internal server error"
