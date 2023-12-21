@@ -100,7 +100,7 @@ func main() {
 
 	locationRepository := lr.NewLocationRepository(dbConnection, cld)
 	locationService := ls.NewLocationService(locationRepository)
-	locationHandler := lh.NewLocationHandler(locationService, tourService)
+	locationHandler := lh.NewLocationHandler(locationService)
 
 	reviewRepository := rr.NewReviewRepository(dbConnection, tourService)
 	reviewService := rs.NewReviewService(reviewRepository)

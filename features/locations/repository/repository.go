@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"wanderer/features/locations"
 	"wanderer/helpers/filters"
 	"wanderer/utils/files"
@@ -63,6 +65,10 @@ func (repo *locationRepository) Create(ctx context.Context, data locations.Locat
 
 	qry := repo.mysqlDB.Create(mod)
 	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1062") {
+			return errors.New("used: location name already exist")
+		}
+
 		return qry.Error
 	}
 
@@ -88,11 +94,15 @@ func (repo *locationRepository) Update(ctx context.Context, id uint, data locati
 
 	qry := repo.mysqlDB.Where(&Location{Id: id}).Updates(mod)
 	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1062") {
+			return errors.New("used: location name already exist")
+		}
+
 		return qry.Error
 	}
 
 	if qry.RowsAffected == 0 {
-		return errors.New("not found")
+		return errors.New("not found: location not found")
 	}
 
 	return nil
@@ -101,11 +111,15 @@ func (repo *locationRepository) Update(ctx context.Context, id uint, data locati
 func (repo *locationRepository) Delete(ctx context.Context, id uint) error {
 	qry := repo.mysqlDB.Where(&Location{Id: id}).Delete(&Location{})
 	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1451") {
+			return errors.New("used: location used by other resources")
+		}
+
 		return qry.Error
 	}
 
 	if qry.RowsAffected == 0 {
-		return errors.New("not found")
+		return errors.New("not found: location not found")
 	}
 
 	return nil
@@ -113,10 +127,20 @@ func (repo *locationRepository) Delete(ctx context.Context, id uint) error {
 
 func (repo *locationRepository) GetDetail(ctx context.Context, id uint) (*locations.Location, error) {
 	var mod = new(Location)
-
-	if err := repo.mysqlDB.Where(&Location{Id: id}).First(&mod).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Location{Id: id}).First(&mod).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: location not found")
+		}
 		return nil, err
 	}
+
+	var modTour []Tour
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Tour{LocationId: id}).Find(&modTour).Error; err != nil {
+		return nil, err
+	}
+	mod.Tours = modTour
+
+	fmt.Println(modTour)
 
 	return mod.ToEntity(), nil
 }
