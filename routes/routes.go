@@ -43,6 +43,7 @@ func (router *Routes) UserRouter() {
 	router.Server.POST("/login", router.UserHandler.Login())
 	router.Server.PATCH("/users", router.UserHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/users", router.UserHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/users", router.UserHandler.Detail(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) AirlineRouter() {

@@ -18,9 +18,25 @@ type User struct {
 	ImageUrl string
 	ImageRaw io.Reader
 
+	TourCount   int
+	ReviewCount int
+	Bookings    []Booking
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
+}
+
+type Booking struct {
+	Code        int
+	DetailCount int
+	Status      string
+	Tour        Tour
+}
+
+type Tour struct {
+	Id    uint
+	Title string
 }
 
 type Handler interface {
@@ -28,6 +44,7 @@ type Handler interface {
 	Login() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	Detail() echo.HandlerFunc
 }
 
 type Service interface {
@@ -35,6 +52,7 @@ type Service interface {
 	Login(email string, password string) (*User, error)
 	Update(id uint, updateUser User) error
 	Delete(id uint) error
+	Detail(id uint) (*User, error)
 }
 
 type Repository interface {
@@ -42,4 +60,5 @@ type Repository interface {
 	Login(email string) (*User, error)
 	Update(id uint, updateUser User) error
 	Delete(id uint) error
+	Detail(id uint) (*User, error)
 }

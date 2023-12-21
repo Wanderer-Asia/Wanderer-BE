@@ -209,3 +209,46 @@ func (hdl *userHandler) Delete() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, response)
 	}
 }
+
+func (hdl *userHandler) Detail() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response = make(map[string]interface{})
+
+		token := c.Get("user")
+		if token == nil {
+			response["message"] = "unauthorized access"
+			return c.JSON(http.StatusUnauthorized, response)
+		}
+
+		userId, err := tokens.ExtractToken(hdl.jwtConfig.Secret, token.(*jwt.Token))
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "unauthorized"
+			return c.JSON(http.StatusUnauthorized, response)
+		}
+
+		result, err := hdl.userService.Detail(userId)
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = "user not found"
+				return c.JSON(http.StatusNotFound, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		if result != nil {
+			var data = new(UserResponse)
+			data.FromEntity(*result)
+
+			response["data"] = data
+		}
+
+		response["message"] = "get profile user success"
+		return c.JSON(http.StatusOK, response)
+	}
+}
