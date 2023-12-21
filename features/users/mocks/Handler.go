@@ -28,8 +28,8 @@ func (_m *Handler) Delete() echo.HandlerFunc {
 	return r0
 }
 
-// GetById provides a mock function with given fields:
-func (_m *Handler) GetById() echo.HandlerFunc {
+// Detail provides a mock function with given fields:
+func (_m *Handler) Detail() echo.HandlerFunc {
 	ret := _m.Called()
 
 	var r0 echo.HandlerFunc

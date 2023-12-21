@@ -28,11 +28,11 @@ func (srv *locationService) GetAll(ctx context.Context, flt filters.Filter) ([]l
 
 func (srv *locationService) Create(ctx context.Context, data locations.Location) error {
 	if data.Name == "" {
-		return errors.New("validate: please input name")
+		return errors.New("validate: name can't be empty")
 	}
 
 	if data.ImageRaw == nil {
-		return errors.New("validate: please insert image")
+		return errors.New("validate: image can't be empty")
 	}
 
 	if err := srv.repo.Create(ctx, data); err != nil {
@@ -48,11 +48,7 @@ func (srv *locationService) Update(ctx context.Context, id uint, data locations.
 	}
 
 	if data.Name == "" {
-		return errors.New("validate: please input name")
-	}
-
-	if data.ImageRaw == nil {
-		return errors.New("validate: please insert image")
+		return errors.New("validate: name can't be empty")
 	}
 
 	if err := srv.repo.Update(ctx, id, data); err != nil {
@@ -76,7 +72,7 @@ func (srv *locationService) Delete(ctx context.Context, id uint) error {
 
 func (srv *locationService) GetDetail(ctx context.Context, id uint) (*locations.Location, error) {
 	if id == 0 {
-		return nil, errors.New("validate: invalid lcation id")
+		return nil, errors.New("validate: invalid location id")
 	}
 
 	result, err := srv.repo.GetDetail(ctx, id)

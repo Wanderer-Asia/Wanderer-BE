@@ -7,8 +7,6 @@ import (
 	"time"
 	"wanderer/features/bookings"
 	"wanderer/features/bookings/mocks"
-	"wanderer/features/tours"
-	"wanderer/features/users"
 	"wanderer/helpers/filters"
 
 	"github.com/stretchr/testify/assert"
@@ -26,10 +24,10 @@ func TestBookingServiceGetAll(t *testing.T) {
 			Status:    "pending",
 			BookedAt:  time.Now(),
 			DeletedAt: time.Now(),
-			User: users.User{
+			User: bookings.User{
 				Id: 1,
 			},
-			Tour: tours.Tour{
+			Tour: bookings.Tour{
 				Id: 1,
 			},
 			Detail: []bookings.Detail{
@@ -51,10 +49,10 @@ func TestBookingServiceGetAll(t *testing.T) {
 			Status:    "pending",
 			BookedAt:  time.Now(),
 			DeletedAt: time.Now(),
-			User: users.User{
+			User: bookings.User{
 				Id: 1,
 			},
-			Tour: tours.Tour{
+			Tour: bookings.Tour{
 				Id: 1,
 			},
 			Detail: []bookings.Detail{
@@ -108,10 +106,10 @@ func TestBookingServiceGetDetail(t *testing.T) {
 		Status:    "pending",
 		BookedAt:  time.Now(),
 		DeletedAt: time.Now(),
-		User: users.User{
+		User: bookings.User{
 			Id: 1,
 		},
-		Tour: tours.Tour{
+		Tour: bookings.Tour{
 			Id: 1,
 		},
 		Detail: []bookings.Detail{
@@ -170,10 +168,10 @@ func TestBookingServiceCreate(t *testing.T) {
 		Status:    "pending",
 		BookedAt:  time.Now(),
 		DeletedAt: time.Now(),
-		User: users.User{
+		User: bookings.User{
 			Id: 1,
 		},
-		Tour: tours.Tour{
+		Tour: bookings.Tour{
 			Id: 1,
 		},
 		Detail: []bookings.Detail{
@@ -214,6 +212,19 @@ func TestBookingServiceCreate(t *testing.T) {
 		assert.Nil(t, result)
 
 		caseData.User.Id = userId
+	})
+
+	t.Run("invalid payment method", func(t *testing.T) {
+		caseData := data
+		paymentBank := caseData.Payment.Bank
+		caseData.Payment.Bank = ""
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "payment method")
+		assert.Nil(t, result)
+
+		caseData.Payment.Bank = paymentBank
 	})
 
 	t.Run("empty pasenger", func(t *testing.T) {
@@ -329,10 +340,10 @@ func TestBookingServiceUpdate(t *testing.T) {
 		Status:    "pending",
 		BookedAt:  time.Now(),
 		DeletedAt: time.Now(),
-		User: users.User{
+		User: bookings.User{
 			Id: 1,
 		},
-		Tour: tours.Tour{
+		Tour: bookings.Tour{
 			Id: 1,
 		},
 		Detail: []bookings.Detail{

@@ -16,9 +16,21 @@ type Location struct {
 	ImageUrl string
 	ImageRaw io.Reader
 
+	Tours []Tour
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt time.Time
+}
+
+type Tour struct {
+	Id       uint
+	Title    string
+	Discount int
+	Start    time.Time
+	Quota    int
+	Rating   float32
+
+	Thumbnail string
 }
 
 type Handler interface {

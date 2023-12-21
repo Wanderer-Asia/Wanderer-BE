@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 	"wanderer/features/airlines"
 	"wanderer/helpers/filters"
 	"wanderer/utils/files"
@@ -37,6 +38,10 @@ func (repo *airlineRepository) Create(newAirline airlines.Airline) error {
 
 	queryCreate := repo.mysqlDB.Create(model)
 	if queryCreate.Error != nil {
+		if strings.Contains(queryCreate.Error.Error(), "1062") {
+			return errors.New("used: airline name already exist")
+		}
+
 		return queryCreate.Error
 	}
 
@@ -81,8 +86,17 @@ func (repo *airlineRepository) Update(id uint, updateAirline airlines.Airline) e
 	var model = new(Airline)
 	model.FromEntity(updateAirline)
 
-	if err := repo.mysqlDB.Where(&Airline{Id: id}).Updates(model).Error; err != nil {
+	updateQuery := repo.mysqlDB.Where(&Airline{Id: id}).Updates(model)
+	if err := updateQuery.Error; err != nil {
+		if strings.Contains(err.Error(), "1062") {
+			return errors.New("used: airline name already exist")
+		}
+
 		return err
+	}
+
+	if updateQuery.RowsAffected == 0 {
+		return errors.New("not found: airline not found")
 	}
 
 	return nil
@@ -91,11 +105,15 @@ func (repo *airlineRepository) Update(id uint, updateAirline airlines.Airline) e
 func (repo *airlineRepository) Delete(id uint) error {
 	deleteQuery := repo.mysqlDB.Delete(&Airline{Id: id})
 	if deleteQuery.Error != nil {
+		if strings.Contains(deleteQuery.Error.Error(), "1451") {
+			return errors.New("used: airline used by other resources")
+		}
+
 		return deleteQuery.Error
 	}
 
 	if deleteQuery.RowsAffected == 0 {
-		return errors.New("not found")
+		return errors.New("not found: airline not found")
 	}
 
 	return nil

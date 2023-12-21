@@ -3,8 +3,6 @@ package bookings
 import (
 	"context"
 	"time"
-	"wanderer/features/tours"
-	"wanderer/features/users"
 	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
@@ -17,8 +15,8 @@ type Booking struct {
 	BookedAt  time.Time
 	DeletedAt time.Time
 
-	User users.User
-	Tour tours.Tour
+	User User
+	Tour Tour
 
 	Detail  []Detail
 	Payment Payment
@@ -53,6 +51,77 @@ type Payment struct {
 	CreatedAt time.Time
 	ExpiredAt time.Time
 	PaidAt    time.Time
+}
+
+type User struct {
+	Id    uint
+	Name  string
+	Email string
+	Phone string
+
+	ImageUrl string
+}
+
+type Tour struct {
+	Id          uint
+	Title       string
+	Description string
+	Price       float64
+	Start       time.Time
+	Finish      time.Time
+	Quota       int
+	Available   int
+	Rating      float32
+
+	Picture []File
+
+	Itinerary []Itinerary
+
+	FacilityInclude []Facility
+	FacilityExclude []Facility
+
+	Airline Airline
+
+	Location Location
+
+	Reviews []Review
+}
+
+type File struct {
+	Id  int
+	Url string
+}
+
+type Itinerary struct {
+	Id          int
+	Location    string
+	Description string
+}
+
+type Facility struct {
+	Id   uint
+	Name string
+}
+
+type Airline struct {
+	Id   uint
+	Name string
+}
+
+type Location struct {
+	Id   uint
+	Name string
+}
+
+type Review struct {
+	Id     uint
+	TourId uint
+	Text   string
+	Rating float32
+
+	User User
+
+	CreatedAt time.Time
 }
 
 type Handler interface {

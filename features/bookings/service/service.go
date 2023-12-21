@@ -28,7 +28,7 @@ func (srv *bookingService) GetAll(ctx context.Context, flt filters.Filter) ([]bo
 
 func (srv *bookingService) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {
 	if code == 0 {
-		return nil, errors.New("validate: please fill booking code correctly")
+		return nil, errors.New("validate: invalid booking code")
 	}
 
 	result, err := srv.repo.GetDetail(ctx, code)
@@ -41,36 +41,40 @@ func (srv *bookingService) GetDetail(ctx context.Context, code int) (*bookings.B
 
 func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*bookings.Booking, error) {
 	if data.Tour.Id == 0 {
-		return nil, errors.New("validate: please fill tour id correctly")
+		return nil, errors.New("validate: tour id can't be empty")
 	}
 
 	if data.User.Id == 0 {
-		return nil, errors.New("validate: please fill user id correctly")
+		return nil, errors.New("validate: user id can't be empty")
+	}
+
+	if data.Payment.Bank == "" {
+		return nil, errors.New("validate: payment method can't be empty")
 	}
 
 	if len(data.Detail) == 0 {
-		return nil, errors.New("validate: please fill passenger data correctly")
+		return nil, errors.New("validate: passenger data can't be empty")
 	}
 
 	for _, detail := range data.Detail {
 		if detail.DocumentNumber == "" {
-			return nil, errors.New("validate: please fill document number correctly")
+			return nil, errors.New("validate: document number can't be empty")
 		}
 
 		if detail.Greeting == "" {
-			return nil, errors.New("validate: please fill greeting correctly")
+			return nil, errors.New("validate: greeting can't be empty")
 		}
 
 		if detail.Name == "" {
-			return nil, errors.New("validate: please fill name correctly")
+			return nil, errors.New("validate: name can't be empty")
 		}
 
 		if detail.Nationality == "" {
-			return nil, errors.New("validate: please fill nationality correctly")
+			return nil, errors.New("validate: nationality can't be empty")
 		}
 
 		if detail.DOB.IsZero() {
-			return nil, errors.New("validate: please fill date of birth correctly")
+			return nil, errors.New("validate: date of birth can't be empty")
 		}
 	}
 
@@ -84,7 +88,7 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 
 func (srv *bookingService) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
 	if code == 0 {
-		return nil, errors.New("validate: please fill booking code correctly")
+		return nil, errors.New("validate: invalid booking code")
 	}
 
 	result, err := srv.repo.Update(ctx, code, data)

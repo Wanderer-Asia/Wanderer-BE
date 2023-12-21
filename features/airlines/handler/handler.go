@@ -48,13 +48,13 @@ func (hdl *airlineHandler) Create() echo.HandlerFunc {
 		if err := hdl.airlineService.Create(*data); err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "validate") {
+			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "Duplicate") {
-				response["message"] = "airline name is already in the system"
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
 				return c.JSON(http.StatusConflict, response)
 			}
 
@@ -107,13 +107,13 @@ func (hdl *airlineHandler) Update() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "ivalid airline id"
+			response["message"] = "invalid airline id"
 		}
 
 		if c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "incorect input"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -136,13 +136,13 @@ func (hdl *airlineHandler) Update() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "Duplicate") {
-				response["message"] = "airline name is already in the system"
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
 				return c.JSON(http.StatusConflict, response)
 			}
 
 			if strings.Contains(err.Error(), "not found: ") {
-				response["message"] = "airline not found"
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -163,15 +163,20 @@ func (hdl *airlineHandler) Delete() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "ivalid airline id"
+			response["message"] = "invalid airline id"
 		}
 
 		if err := hdl.airlineService.Delete(uint(id)); err != nil {
 			c.Logger().Error(err)
 
 			if strings.Contains(err.Error(), "not found: ") {
-				response["message"] = "airline not found"
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
+			}
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
 			}
 
 			response["message"] = "internal server error"
