@@ -261,3 +261,22 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 
 	return &data, nil
 }
+
+func (repo *bookingRepository) Export(ctx context.Context) ([]bookings.Booking, error) {
+	var mod []Booking
+	var data []bookings.Booking
+
+	qry := repo.mysqlDB.WithContext(ctx).Model(&Booking{})
+
+	if err := qry.Joins("User").Joins("Tour", repo.mysqlDB.Select("title", "start", "finish").Model(&Tour{})).Find(&mod).Error; err != nil {
+		return nil, err
+	}
+
+	for _, booking := range mod {
+		booking.Payment = Payment{}
+		data = append(data, *booking.ToEntity())
+	}
+
+	return data, nil
+
+}

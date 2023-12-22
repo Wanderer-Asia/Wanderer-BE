@@ -130,6 +130,7 @@ type Handler interface {
 	Create() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	PaymentNotification() echo.HandlerFunc
+	ExportReportTransaction() echo.HandlerFunc
 }
 
 type Service interface {
@@ -137,6 +138,7 @@ type Service interface {
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	Update(ctx context.Context, code int, data Booking) (*Booking, error)
+	Export(ctx context.Context) ([]Booking, error)
 }
 
 type Repository interface {
@@ -144,4 +146,5 @@ type Repository interface {
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	Update(ctx context.Context, code int, data Booking) (*Booking, error)
+	Export(ctx context.Context) ([]Booking, error)
 }

@@ -86,6 +86,8 @@ func (router *Routes) BookingRouter() {
 	router.Server.PATCH("/bookings/:code", router.BookingHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 
 	router.Server.POST("/payments", router.BookingHandler.PaymentNotification())
+
+	router.Server.GET("/bookings/export", router.BookingHandler.ExportReportTransaction(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) ReportRouter() {
