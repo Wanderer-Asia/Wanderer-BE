@@ -2,29 +2,25 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 	"wanderer/features/bookings"
-	"wanderer/features/tours"
-	tr "wanderer/features/tours/repository"
-	ur "wanderer/features/users/repository"
 	"wanderer/helpers/filters"
 	"wanderer/utils/payments"
 
 	"gorm.io/gorm"
 )
 
-func NewBookingRepository(mysqlDB *gorm.DB, tourRepository tours.Repository, payment payments.Midtrans) bookings.Repository {
+func NewBookingRepository(mysqlDB *gorm.DB, payment payments.Midtrans) bookings.Repository {
 	return &bookingRepository{
-		mysqlDB:  mysqlDB,
-		payment:  payment,
-		tourRepo: tourRepository,
+		mysqlDB: mysqlDB,
+		payment: payment,
 	}
 }
 
 type bookingRepository struct {
-	mysqlDB  *gorm.DB
-	payment  payments.Midtrans
-	tourRepo tours.Repository
+	mysqlDB *gorm.DB
+	payment payments.Midtrans
 }
 
 func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) ([]bookings.Booking, int, error) {
@@ -34,6 +30,8 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 
 	qry := repo.mysqlDB.WithContext(ctx).Model(&Booking{})
 
+	qry.Count(&totalData)
+
 	if flt.Pagination.Limit != 0 {
 		qry = qry.Limit(flt.Pagination.Limit)
 	}
@@ -42,13 +40,12 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 		qry = qry.Offset(flt.Pagination.Start)
 	}
 
-	qry.Count(&totalData)
-
-	if err := qry.Joins("Tour").Joins("Tour.Location").Joins("User").Find(&mod).Error; err != nil {
+	if err := qry.Joins("User").Joins("Tour", repo.mysqlDB.Select("title", "start", "finish").Model(&Tour{})).Find(&mod).Error; err != nil {
 		return nil, int(totalData), err
 	}
 
 	for _, booking := range mod {
+		booking.Payment = Payment{}
 		data = append(data, *booking.ToEntity())
 	}
 
@@ -57,22 +54,63 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 
 func (repo *bookingRepository) GetDetail(ctx context.Context, code int) (*bookings.Booking, error) {
 	var mod = new(Booking)
-	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Joins("User").First(mod).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).First(mod).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: booking not found")
+		}
 		return nil, err
 	}
-	data := mod.ToEntity()
 
 	var modBookinDetail []BookingDetail
 	if err := repo.mysqlDB.WithContext(ctx).Where(&BookingDetail{BookingCode: code}).Find(&modBookinDetail).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: booking not found")
+		}
 		return nil, err
 	}
 	mod.Detail = modBookinDetail
+	data := mod.ToEntity()
 
-	modTour, err := repo.tourRepo.GetDetail(ctx, mod.TourId)
-	if err != nil {
+	var modTour = new(Tour)
+	if err := repo.mysqlDB.WithContext(ctx).Joins("Airline").Where(&Tour{Id: mod.TourId}).First(modTour).Error; err != nil {
 		return nil, err
 	}
-	data.Tour = *modTour
+
+	var modFile []File
+	if err := repo.mysqlDB.WithContext(ctx).Joins("JOIN tour_attachment ON tour_attachment.file_id = files.id AND tour_attachment.tour_id = ?", mod.TourId).Find(&modFile).Error; err != nil {
+		return nil, err
+	}
+	modTour.Picture = modFile
+
+	var modFacilityInclude []Facility
+	if err := repo.mysqlDB.WithContext(ctx).Joins("JOIN tour_facility ON tour_facility.facility_id = facilities.id AND tour_facility.tour_id = ?", mod.TourId).Find(&modFacilityInclude).Error; err != nil {
+		return nil, err
+	}
+	modTour.Facility = modFacilityInclude
+
+	var facilityIncludes []uint
+	for _, facility := range modFacilityInclude {
+		facilityIncludes = append(facilityIncludes, facility.Id)
+	}
+
+	var modFacilityExclude []Facility
+	if err := repo.mysqlDB.WithContext(ctx).Where("id not in (?)", facilityIncludes).Find(&modFacilityExclude).Error; err != nil {
+		return nil, err
+	}
+
+	var modItinerary []Itinerary
+	if err := repo.mysqlDB.WithContext(ctx).Where("tour_id = ?", mod.TourId).Find(&modItinerary).Error; err != nil {
+		return nil, err
+	}
+	modTour.Itinerary = modItinerary
+
+	var modReviews []Review
+	if err := repo.mysqlDB.WithContext(ctx).Where("tour_id = ?", mod.TourId).Joins("User").Find(&modReviews).Error; err != nil {
+		return nil, err
+	}
+	modTour.Reviews = modReviews
+
+	data.Tour = *modTour.ToEntity(modFacilityExclude)
 
 	return data, nil
 }
@@ -81,14 +119,20 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 	var modBooking = new(Booking)
 	modBooking.FromEntity(data)
 
-	var modTour = new(tr.Tour)
-	if err := repo.mysqlDB.WithContext(ctx).Where(&tr.Tour{Id: modBooking.TourId}).First(modTour).Error; err != nil {
+	var modTour = new(Tour)
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Tour{Id: modBooking.TourId}).First(modTour).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: tour not found")
+		}
 		return nil, err
 	}
 	modBooking.Tour = *modTour
 
-	var modUser = new(ur.User)
-	if err := repo.mysqlDB.WithContext(ctx).Where(&ur.User{Id: modBooking.UserId}).First(modUser).Error; err != nil {
+	var modUser = new(User)
+	if err := repo.mysqlDB.WithContext(ctx).Where(&User{Id: modBooking.UserId}).First(modUser).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: user not found")
+		}
 		return nil, err
 	}
 	modBooking.User = *modUser
@@ -107,9 +151,15 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 	modPayment.FromEntity(*res)
 	modBooking.Payment = *modPayment
 
-	if err := repo.mysqlDB.WithContext(ctx).Create(modBooking).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Omit("User", "Tour").Create(modBooking).Error; err != nil {
 		return nil, err
 	}
+
+	modBooking.Code = 0
+	modBooking.User = User{}
+	modBooking.Tour = Tour{}
+	modBooking.Status = ""
+	modBooking.Detail = nil
 
 	return modBooking.ToEntity(), nil
 }
@@ -120,6 +170,9 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 
 	var modOldBooking = new(Booking)
 	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Joins("User").First(modOldBooking).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: booking not found")
+		}
 		return nil, err
 	}
 
@@ -136,7 +189,7 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 		}
 	}()
 
-	if modNewBooking.Payment.Bank != "" && modNewBooking.Payment.Bank != modOldBooking.Payment.Bank {
+	if modNewBooking.Payment.Bank != "" {
 		err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
 			if err := repo.payment.CancelBookingPayment(code); err != nil {
 				return err
@@ -170,6 +223,27 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 		if err != nil {
 			tx.Rollback()
 			return nil, err
+		}
+	}
+
+	if modNewBooking.Status != "" {
+		switch modNewBooking.Status {
+		case "refunded":
+			err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+				return txTour.WithContext(ctx).Model(&Tour{}).Where(&Tour{Id: modOldBooking.TourId}).Update("available", gorm.Expr("available + ?", len(modOldBooking.Detail))).Error
+			})
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		case "approved":
+			err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+				return txTour.WithContext(ctx).Model(&Tour{}).Where(&Tour{Id: modOldBooking.TourId}).Update("available", gorm.Expr("available - ?", len(modOldBooking.Detail))).Error
+			})
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
 		}
 	}
 

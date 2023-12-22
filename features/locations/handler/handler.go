@@ -5,22 +5,19 @@ import (
 	"strconv"
 	"strings"
 	"wanderer/features/locations"
-	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-func NewLocationHandler(locationService locations.Service, tourService tours.Service) locations.Handler {
+func NewLocationHandler(locationService locations.Service) locations.Handler {
 	return &locationHandler{
 		locationService: locationService,
-		tourService:     tourService,
 	}
 }
 
 type locationHandler struct {
 	locationService locations.Service
-	tourService     tours.Service
 }
 
 func (hdl *locationHandler) GetAll() echo.HandlerFunc {
@@ -28,13 +25,8 @@ func (hdl *locationHandler) GetAll() echo.HandlerFunc {
 		var response = make(map[string]any)
 		var filter = new(filters.Filter)
 
-		var pagination = new(filters.Pagination)
-		c.Bind(pagination)
-		filter.Pagination = *pagination
-
-		var search = new(filters.Search)
-		c.Bind(search)
-		filter.Search = *search
+		c.Bind(&filter.Pagination)
+		c.Bind(&filter.Search)
 
 		result, err := hdl.locationService.GetAll(c.Request().Context(), *filter)
 		if err != nil {
@@ -66,7 +58,7 @@ func (hdl *locationHandler) Create() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "please fill input correctly"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -88,6 +80,11 @@ func (hdl *locationHandler) Create() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
 			}
 
 			response["message"] = "internal server error"
@@ -115,7 +112,7 @@ func (hdl *locationHandler) Update() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "please fill input correctly"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -138,8 +135,13 @@ func (hdl *locationHandler) Update() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "location not found"
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -172,8 +174,13 @@ func (hdl *locationHandler) Delete() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "location not found"
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -207,8 +214,8 @@ func (hdl *locationHandler) GetDetail() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "location not found"
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -216,31 +223,13 @@ func (hdl *locationHandler) GetDetail() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		tours, err := hdl.tourService.GetByLocation(c.Request().Context(), uint(locationId))
-		if err != nil {
-			c.Logger().Error(err)
-
-			if strings.Contains(err.Error(), "validate: ") {
-				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
-				return c.JSON(http.StatusBadRequest, response)
-			}
-
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "location not found"
-				return c.JSON(http.StatusNotFound, response)
-			}
-
-			response["message"] = "internal server error"
-			return c.JSON(http.StatusInternalServerError, response)
-		}
-
-		var data = new(DetailLocationResponse)
-		if location != nil || tours != nil {
-			data.FromEntity(*location, tours)
+		if location != nil {
+			var data = new(LocationResponse)
+			data.FromEntity(*location)
+			response["data"] = data
 		}
 
 		response["message"] = "get detail location success"
-		response["data"] = data
 		return c.JSON(http.StatusOK, response)
 	}
 }

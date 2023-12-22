@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"time"
 	"wanderer/features/bookings"
-	tr "wanderer/features/tours/repository"
-	ur "wanderer/features/users/repository"
 
 	"gorm.io/gorm"
 )
@@ -20,10 +18,10 @@ type Booking struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	UserId uint
-	User   ur.User `gorm:"foreignKey:UserId"`
+	User   User `gorm:"foreignKey:UserId"`
 
 	TourId uint
-	Tour   tr.Tour `gorm:"foreignKey:TourId"`
+	Tour   Tour `gorm:"foreignKey:TourId"`
 
 	Detail  []BookingDetail
 	Payment Payment `gorm:"embedded;embeddedPrefix:payment_"`
@@ -38,7 +36,7 @@ func (mod *Booking) GenerateCode() (err error) {
 	return
 }
 
-func (mod *Booking) CalcTotal(tour tr.Tour) {
+func (mod *Booking) CalcTotal(tour Tour) {
 	mod.Total = (float64(len(mod.Detail)) * tour.Price) - (float64(tour.Discount) / 100 * tour.Price * float64(len(mod.Detail))) + tour.AdminFee
 }
 
@@ -281,4 +279,280 @@ func (mod *Payment) ToEntity() bookings.Payment {
 	}
 
 	return *ent
+}
+
+type User struct {
+	Id    uint
+	Name  string `gorm:"column:fullname;"`
+	Email string
+	Phone string
+
+	Image string
+}
+
+func (mod *User) ToEntity() *bookings.User {
+	var ent = new(bookings.User)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	if mod.Phone != "" {
+		ent.Phone = mod.Phone
+	}
+
+	if mod.Email != "" {
+		ent.Email = mod.Email
+	}
+
+	return ent
+}
+
+type Tour struct {
+	Id          uint
+	Title       string
+	Description string
+	Price       float64
+	AdminFee    float64
+	Discount    int
+	Start       time.Time
+	Finish      time.Time
+	Quota       int
+	Available   int
+	Rating      *float32
+
+	Picture   []File `gorm:"many2many:tour_attachment;"`
+	Itinerary []Itinerary
+	Facility  []Facility `gorm:"many2many:tour_facility;"`
+
+	AirlineId uint
+	Airline   Airline
+
+	LocationId uint
+	Location   Location
+
+	Reviews []Review `gorm:"foreignKey:TourId"`
+}
+
+func (mod *Tour) ToEntity(excludeFacility []Facility) *bookings.Tour {
+	var ent = new(bookings.Tour)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Title != "" {
+		ent.Title = mod.Title
+	}
+
+	if mod.Description != "" {
+		ent.Description = mod.Description
+	}
+
+	if mod.Price != 0 {
+		ent.Price = mod.Price
+	}
+
+	if !mod.Start.IsZero() {
+		ent.Start = mod.Start
+	}
+
+	if !mod.Finish.IsZero() {
+		ent.Finish = mod.Finish
+	}
+
+	if mod.Quota != 0 {
+		ent.Quota = mod.Quota
+	}
+
+	if mod.Available != 0 {
+		ent.Available = mod.Available
+	}
+
+	if mod.Rating != nil {
+		ent.Rating = mod.Rating
+	}
+
+	if !reflect.ValueOf(mod.Airline).IsZero() {
+		ent.Airline = *mod.Airline.ToEntity()
+	}
+
+	if !reflect.ValueOf(mod.Location).IsZero() {
+		ent.Location = *mod.Location.ToEntity()
+	}
+
+	for _, pict := range mod.Picture {
+		if !reflect.ValueOf(pict).IsZero() {
+			ent.Picture = append(ent.Picture, *pict.ToEntity())
+		}
+	}
+
+	for _, fac := range mod.Facility {
+		if !reflect.ValueOf(fac).IsZero() {
+			ent.FacilityInclude = append(ent.FacilityInclude, *fac.ToEntity())
+		}
+	}
+
+	for _, fac := range excludeFacility {
+		if !reflect.ValueOf(fac).IsZero() {
+			ent.FacilityExclude = append(ent.FacilityExclude, *fac.ToEntity())
+		}
+	}
+
+	for _, it := range mod.Itinerary {
+		if !reflect.ValueOf(it).IsZero() {
+			ent.Itinerary = append(ent.Itinerary, *it.ToEntity())
+		}
+	}
+
+	for _, rev := range mod.Reviews {
+		if !reflect.ValueOf(rev).IsZero() {
+			ent.Reviews = append(ent.Reviews, *rev.ToEntity())
+		}
+	}
+
+	return ent
+}
+
+type File struct {
+	Id  int
+	Url string `gorm:"column:file;"`
+}
+
+func (mod *File) ToEntity() *bookings.File {
+	var ent = new(bookings.File)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Url != "" {
+		ent.Url = mod.Url
+	}
+
+	return ent
+}
+
+type Itinerary struct {
+	Id          int
+	Location    string
+	Description string
+
+	TourId uint
+}
+
+func (mod *Itinerary) ToEntity() *bookings.Itinerary {
+	var ent = new(bookings.Itinerary)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Location != "" {
+		ent.Location = mod.Location
+	}
+
+	if mod.Description != "" {
+		ent.Description = mod.Description
+	}
+
+	return ent
+}
+
+type Facility struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Facility) ToEntity() *bookings.Facility {
+	var ent = new(bookings.Facility)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return ent
+}
+
+type Airline struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Airline) ToEntity() *bookings.Airline {
+	var ent = new(bookings.Airline)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return ent
+}
+
+type Location struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Location) ToEntity() *bookings.Location {
+	var ent = new(bookings.Location)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return ent
+}
+
+type Review struct {
+	Id     uint
+	UserId uint
+	User   User `gorm:"foreignkey:UserId;"`
+	TourId uint
+	Text   string
+	Rating float32
+
+	CreatedAt time.Time
+}
+
+func (mod *Review) ToEntity() *bookings.Review {
+	var ent = new(bookings.Review)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Text != "" {
+		ent.Text = mod.Text
+	}
+
+	if mod.Rating != 0 {
+		ent.Rating = mod.Rating
+	}
+
+	if !reflect.ValueOf(mod.User).IsZero() {
+		ent.User = *mod.User.ToEntity()
+	}
+
+	if !mod.CreatedAt.IsZero() {
+		ent.CreatedAt = mod.CreatedAt
+	}
+
+	return ent
 }

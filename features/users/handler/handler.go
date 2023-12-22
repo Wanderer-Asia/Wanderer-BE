@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 	"wanderer/config"
 	"wanderer/features/users"
@@ -211,27 +210,29 @@ func (hdl *userHandler) Delete() echo.HandlerFunc {
 	}
 }
 
-func (hdl *userHandler) GetById() echo.HandlerFunc {
+func (hdl *userHandler) Detail() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var response = make(map[string]any)
+		var response = make(map[string]interface{})
 
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.Logger().Error(err)
-
-			response["message"] = "ivalid user id"
+		token := c.Get("user")
+		if token == nil {
+			response["message"] = "unauthorized access"
+			return c.JSON(http.StatusUnauthorized, response)
 		}
 
-		result, err := hdl.userService.GetById(uint(id))
+		userId, err := tokens.ExtractToken(hdl.jwtConfig.Secret, token.(*jwt.Token))
 		if err != nil {
 			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "validate") {
-				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
-				return c.JSON(http.StatusBadRequest, response)
-			}
+			response["message"] = "unauthorized"
+			return c.JSON(http.StatusUnauthorized, response)
+		}
 
-			if strings.Contains(err.Error(), "not found") {
+		result, err := hdl.userService.Detail(userId)
+		if err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "not found: ") {
 				response["message"] = "user not found"
 				return c.JSON(http.StatusNotFound, response)
 			}
@@ -240,11 +241,14 @@ func (hdl *userHandler) GetById() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		var data = new(UserByIdResponse)
-		data.FromEntity(*result)
+		if result != nil {
+			var data = new(UserResponse)
+			data.FromEntity(*result)
+
+			response["data"] = data
+		}
 
 		response["message"] = "get profile user success"
-		response["data"] = data
 		return c.JSON(http.StatusOK, response)
 	}
 }

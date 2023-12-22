@@ -126,17 +126,6 @@ func TestLocationServiceUpdate(t *testing.T) {
 		assert.ErrorContains(t, err, "name")
 	})
 
-	t.Run("invalid image", func(t *testing.T) {
-		caseData := locations.Location{
-			Name: "example location",
-		}
-
-		err := srv.Update(ctx, 1, caseData)
-
-		assert.ErrorContains(t, err, "validate")
-		assert.ErrorContains(t, err, "image")
-	})
-
 	t.Run("error from repository", func(t *testing.T) {
 		caseData := locations.Location{
 			Name:     "example location",

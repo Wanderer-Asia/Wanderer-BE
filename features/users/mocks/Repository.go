@@ -27,8 +27,8 @@ func (_m *Repository) Delete(id uint) error {
 	return r0
 }
 
-// GetById provides a mock function with given fields: id
-func (_m *Repository) GetById(id uint) (*users.User, error) {
+// Detail provides a mock function with given fields: id
+func (_m *Repository) Detail(id uint) (*users.User, error) {
 	ret := _m.Called(id)
 
 	var r0 *users.User

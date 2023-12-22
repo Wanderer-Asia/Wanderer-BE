@@ -3,8 +3,6 @@ package repository
 import (
 	"time"
 	"wanderer/features/facilities"
-
-	"gorm.io/gorm"
 )
 
 type Facility struct {
@@ -13,7 +11,6 @@ type Facility struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (mod *Facility) FromEntity(ent facilities.Facility) {
@@ -40,10 +37,6 @@ func (mod *Facility) ToEntity() *facilities.Facility {
 
 	if !mod.UpdatedAt.IsZero() {
 		ent.UpdatedAt = mod.UpdatedAt
-	}
-
-	if !mod.DeletedAt.Time.IsZero() {
-		ent.DeletedAt = mod.DeletedAt.Time
 	}
 
 	return ent

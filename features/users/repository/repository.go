@@ -75,12 +75,31 @@ func (repo *userRepository) Delete(id uint) error {
 	return nil
 }
 
-func (repo *userRepository) GetById(id uint) (*users.User, error) {
-	var model = new(User)
-
-	if err := repo.mysqlDB.Preload("Bookings").Preload("Bookings.BookingDetails").Preload("Bookings.Tour").Preload("Reviews").Where("id = ?", id).First(model).Error; err != nil {
+func (repo *userRepository) Detail(id uint) (*users.User, error) {
+	var modUser = new(User)
+	if err := repo.mysqlDB.Where(&User{Id: id}).First(&modUser).Error; err != nil {
 		return nil, err
 	}
 
-	return model.ToEntity(), nil
+	var modBooking []Booking
+	if err := repo.mysqlDB.Select("COUNT(booking_details.id) as detail_count, bookings.*").Where(&Booking{UserId: id}).Joins("Tour").Joins("JOIN booking_details ON booking_details.booking_code = bookings.code").Group("bookings.code").Find(&modBooking).Error; err != nil {
+		return nil, err
+	}
+	modUser.Bookings = modBooking
+
+	var tourTotal = make(map[uint]bool)
+	for _, booking := range modBooking {
+		if !tourTotal[booking.TourId] {
+			tourTotal[booking.TourId] = true
+		}
+	}
+	modUser.TourCount = len(tourTotal)
+
+	var totalReview int64
+	if err := repo.mysqlDB.Model(&Review{}).Where(&Review{UserId: id}).Count(&totalReview).Error; err != nil {
+		return nil, err
+	}
+	modUser.ReviewCount = int(totalReview)
+
+	return modUser.ToEntity(), nil
 }

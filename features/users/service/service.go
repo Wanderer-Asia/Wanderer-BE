@@ -101,12 +101,12 @@ func (srv *userService) Delete(id uint) error {
 	return nil
 }
 
-func (srv *userService) GetById(id uint) (*users.User, error) {
+func (srv *userService) Detail(id uint) (*users.User, error) {
 	if id == 0 {
 		return nil, errors.New("validate: invalid user id")
 	}
 
-	result, err := srv.repo.GetById(id)
+	result, err := srv.repo.Detail(id)
 	if err != nil {
 		return nil, err
 	}

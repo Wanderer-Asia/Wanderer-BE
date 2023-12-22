@@ -20,9 +20,7 @@ type User struct {
 
 	TourCount   int
 	ReviewCount int
-
-	Bookings []Booking
-	Reviews  []Review
+	Bookings    []Booking
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -30,20 +28,10 @@ type User struct {
 }
 
 type Booking struct {
-	Code   int
-	Status string
-	UserId uint
-
-	BookingDetails []BookingDetail
-	DetailCount    int
-
-	TourID uint
-	Tour   Tour
-}
-
-type BookingDetail struct {
-	Id          uint
-	BookingCode int
+	Code        int
+	DetailCount int
+	Status      string
+	Tour        Tour
 }
 
 type Tour struct {
@@ -51,17 +39,12 @@ type Tour struct {
 	Title string
 }
 
-type Review struct {
-	Id     uint
-	UserId uint
-}
-
 type Handler interface {
 	Register() echo.HandlerFunc
 	Login() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
-	GetById() echo.HandlerFunc
+	Detail() echo.HandlerFunc
 }
 
 type Service interface {
@@ -69,7 +52,7 @@ type Service interface {
 	Login(email string, password string) (*User, error)
 	Update(id uint, updateUser User) error
 	Delete(id uint) error
-	GetById(id uint) (*User, error)
+	Detail(id uint) (*User, error)
 }
 
 type Repository interface {
@@ -77,5 +60,5 @@ type Repository interface {
 	Login(email string) (*User, error)
 	Update(id uint, updateUser User) error
 	Delete(id uint) error
-	GetById(id uint) (*User, error)
+	Detail(id uint) (*User, error)
 }

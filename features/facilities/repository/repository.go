@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"strings"
 	"wanderer/features/facilities"
 	"wanderer/helpers/filters"
 
@@ -24,6 +25,10 @@ func (repo *facilityRepository) Create(newFacility facilities.Facility) error {
 
 	queryCreate := repo.mysqlDB.Create(model)
 	if queryCreate.Error != nil {
+		if strings.Contains(queryCreate.Error.Error(), "1062") {
+			return errors.New("used: facility name already exist")
+		}
+
 		return queryCreate.Error
 	}
 
@@ -59,8 +64,17 @@ func (repo *facilityRepository) Update(id uint, updateFacility facilities.Facili
 	var model = new(Facility)
 	model.FromEntity(updateFacility)
 
-	if err := repo.mysqlDB.Where(&Facility{Id: id}).Updates(model).Error; err != nil {
+	queryUpdate := repo.mysqlDB.Where(&Facility{Id: id}).Updates(model)
+	if err := queryUpdate.Error; err != nil {
+		if strings.Contains(queryUpdate.Error.Error(), "1062") {
+			return errors.New("used: facility name already exist")
+		}
+
 		return err
+	}
+
+	if queryUpdate.RowsAffected == 0 {
+		return errors.New("not found: facility not found")
 	}
 
 	return nil
@@ -69,11 +83,15 @@ func (repo *facilityRepository) Update(id uint, updateFacility facilities.Facili
 func (repo *facilityRepository) Delete(id uint) error {
 	deleteQuery := repo.mysqlDB.Delete(&Facility{Id: id})
 	if deleteQuery.Error != nil {
+		if strings.Contains(deleteQuery.Error.Error(), "1451") {
+			return errors.New("used: facility used by other resources")
+		}
+
 		return deleteQuery.Error
 	}
 
 	if deleteQuery.RowsAffected == 0 {
-		return errors.New("not found")
+		return errors.New("not found: facility not found")
 	}
 
 	return nil

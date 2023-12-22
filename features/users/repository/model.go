@@ -9,18 +9,17 @@ import (
 )
 
 type User struct {
-	Id          uint   `gorm:"column:id; primaryKey;"`
-	Name        string `gorm:"column:fullname; type:varchar(200);"`
-	Phone       string `gorm:"column:phone; type:varchar(20);"`
-	Email       string `gorm:"column:email; type:varchar(255); unique;"`
-	Password    string `gorm:"column:password; type:varchar(72); not null;"`
-	Image       string `gorm:"column:image; type:text;"`
-	Role        string `gorm:"column:role; type:enum('admin', 'user');"`
-	TourCount   int
-	ReviewCount int
+	Id       uint   `gorm:"column:id; primaryKey;"`
+	Name     string `gorm:"column:fullname; type:varchar(200);"`
+	Phone    string `gorm:"column:phone; type:varchar(20);"`
+	Email    string `gorm:"column:email; type:varchar(255); unique;"`
+	Password string `gorm:"column:password; type:varchar(72); not null;"`
+	Image    string `gorm:"column:image; type:text; default:null;"`
+	Role     string `gorm:"column:role; type:enum('admin', 'user');"`
 
-	Bookings []Booking `gorm:"foreignKey:UserId"`
-	Reviews  []Review  `gorm:"foreignKey:UserId"`
+	TourCount   int       `gorm:"-"`
+	ReviewCount int       `gorm:"-"`
+	Bookings    []Booking `gorm:"-"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -88,6 +87,18 @@ func (mod *User) ToEntity() *users.User {
 		ent.Role = mod.Role
 	}
 
+	if mod.ReviewCount != 0 {
+		ent.ReviewCount = mod.ReviewCount
+	}
+
+	if mod.TourCount != 0 {
+		ent.TourCount = mod.TourCount
+	}
+
+	for _, booking := range mod.Bookings {
+		ent.Bookings = append(ent.Bookings, *booking.ToEntity())
+	}
+
 	if !mod.CreatedAt.IsZero() {
 		ent.CreatedAt = mod.CreatedAt
 	}
@@ -100,45 +111,19 @@ func (mod *User) ToEntity() *users.User {
 		ent.DeletedAt = mod.DeletedAt.Time
 	}
 
-	for _, booking := range mod.Bookings {
-		if !reflect.ValueOf(booking).IsZero() {
-			ent.Bookings = append(ent.Bookings, *booking.ToEntity())
-		}
-	}
-
-	for _, review := range mod.Reviews {
-		if !reflect.ValueOf(review).IsZero() {
-			ent.Reviews = append(ent.Reviews, *review.ToEntity())
-		}
-	}
-
 	return ent
 }
 
 type Booking struct {
-	Code   int `gorm:"primaryKey"`
+	Code   int
 	Status string
-	UserId uint
 
-	BookingDetails []BookingDetail `gorm:"foreignKey:BookingCode"`
-	DetailCount    int
+	DetailCount int
+
+	UserId uint
 
 	TourId uint
 	Tour   Tour
-}
-
-func (mod *Booking) FromEntity(ent users.Booking) {
-	if ent.Status != "" {
-		mod.Status = ent.Status
-	}
-
-	if ent.UserId != 0 {
-		mod.UserId = ent.UserId
-	}
-
-	if ent.DetailCount != 0 {
-		mod.DetailCount = ent.DetailCount
-	}
 }
 
 func (mod *Booking) ToEntity() *users.Booking {
@@ -152,33 +137,20 @@ func (mod *Booking) ToEntity() *users.Booking {
 		ent.Status = mod.Status
 	}
 
-	if mod.UserId != 0 {
-		ent.UserId = mod.UserId
+	if mod.DetailCount != 0 {
+		ent.DetailCount = mod.DetailCount
 	}
 
-	ent.Tour = *mod.Tour.ToEntity()
-
-	for _, bookingDetail := range mod.BookingDetails {
-		if !reflect.ValueOf(bookingDetail).IsZero() {
-			ent.BookingDetails = append(ent.BookingDetails, *bookingDetail.ToEntity())
-		}
+	if !reflect.ValueOf(mod.Tour).IsZero() {
+		ent.Tour = *mod.Tour.ToEntity()
 	}
 
 	return ent
 }
 
 type Tour struct {
-	Id    uint `gorm:"primaryKey;"`
+	Id    uint
 	Title string
-}
-
-func (mod *Tour) FromEntity(ent users.Tour) {
-	if ent.Title != "" {
-		mod.Title = ent.Title
-	}
-	if ent.Id != 0 {
-		mod.Id = ent.Id
-	}
 }
 
 func (mod *Tour) ToEntity() *users.Tour {
@@ -196,57 +168,6 @@ func (mod *Tour) ToEntity() *users.Tour {
 }
 
 type Review struct {
-	Id     uint `gorm:"primaryKey;"`
+	Id     uint
 	UserId uint
-}
-
-func (mod *Review) FromEntity(ent users.Review) {
-	if ent.UserId != 0 {
-		mod.UserId = ent.UserId
-	}
-	if ent.Id != 0 {
-		mod.Id = ent.Id
-	}
-}
-
-func (mod *Review) ToEntity() *users.Review {
-	var ent = new(users.Review)
-
-	if mod.Id != 0 {
-		ent.Id = mod.Id
-	}
-
-	if mod.UserId != 0 {
-		ent.UserId = mod.UserId
-	}
-
-	return ent
-}
-
-type BookingDetail struct {
-	Id          uint `gorm:"primaryKey"`
-	BookingCode int
-}
-
-func (mod *BookingDetail) FromEntity(ent users.BookingDetail) {
-	if ent.BookingCode != 0 {
-		mod.BookingCode = ent.BookingCode
-	}
-	if ent.Id != 0 {
-		mod.Id = ent.Id
-	}
-}
-
-func (mod *BookingDetail) ToEntity() *users.BookingDetail {
-	var ent = new(users.BookingDetail)
-
-	if mod.Id != 0 {
-		ent.Id = mod.Id
-	}
-
-	if mod.BookingCode != 0 {
-		ent.BookingCode = mod.BookingCode
-	}
-
-	return ent
 }
