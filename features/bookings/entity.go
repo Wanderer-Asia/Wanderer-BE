@@ -71,7 +71,7 @@ type Tour struct {
 	Finish      time.Time
 	Quota       int
 	Available   int
-	Rating      float32
+	Rating      *float32
 
 	Picture []File
 

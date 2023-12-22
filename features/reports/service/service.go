@@ -46,7 +46,7 @@ func (srv *reportService) Dashboard(ctx context.Context) (*reports.Report, error
 		return nil, err
 	}
 
-	toTour, err := srv.repo.GetTopTour(ctx)
+	topTour, err := srv.repo.GetTopTour(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,6 @@ func (srv *reportService) Dashboard(ctx context.Context) (*reports.Report, error
 		TotalTour:     totalTour,
 		GraphBooking:  graphBooking,
 		RecentBooking: recentBooking,
-		TopTours:      toTour,
+		TopTours:      topTour,
 	}, nil
 }

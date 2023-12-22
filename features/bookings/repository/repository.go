@@ -30,6 +30,8 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 
 	qry := repo.mysqlDB.WithContext(ctx).Model(&Booking{})
 
+	qry.Count(&totalData)
+
 	if flt.Pagination.Limit != 0 {
 		qry = qry.Limit(flt.Pagination.Limit)
 	}
@@ -37,8 +39,6 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 	if flt.Pagination.Start != 0 {
 		qry = qry.Offset(flt.Pagination.Start)
 	}
-
-	qry.Count(&totalData)
 
 	if err := qry.Joins("User").Joins("Tour", repo.mysqlDB.Select("title", "start", "finish").Model(&Tour{})).Find(&mod).Error; err != nil {
 		return nil, int(totalData), err
