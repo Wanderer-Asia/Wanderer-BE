@@ -20,7 +20,7 @@ type reportRepository struct {
 
 func (repo *reportRepository) GetTotalUser(ctx context.Context) (int, error) {
 	var totalUser int64
-	if err := repo.mysqlDB.WithContext(ctx).Model(&User{}).Count(&totalUser).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Model(&User{}).Where(&User{Role: "user"}).Count(&totalUser).Error; err != nil {
 		return 0, err
 	}
 	return int(totalUser), nil

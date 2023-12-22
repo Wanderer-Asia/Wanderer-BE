@@ -3,7 +3,6 @@ package handler
 import (
 	"io"
 	"time"
-	"wanderer/features/facilities"
 	"wanderer/features/tours"
 
 	"github.com/labstack/echo/v4"
@@ -124,7 +123,7 @@ func (req *TourCreateUpdateRequest) ToEntity() tours.Tour {
 	}
 
 	for _, facilityId := range req.Facility {
-		ent.FacilityInclude = append(ent.FacilityInclude, facilities.Facility{Id: facilityId})
+		ent.FacilityInclude = append(ent.FacilityInclude, tours.Facility{Id: facilityId})
 	}
 
 	for _, it := range req.Itinerary {

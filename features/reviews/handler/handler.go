@@ -45,7 +45,7 @@ func (hdl *reviewHandler) Create() echo.HandlerFunc {
 		if err := c.Bind(request); err != nil {
 			c.Logger().Error(err)
 
-			response["message"] = "incorrect input data"
+			response["message"] = "bad request"
 			return c.JSON(http.StatusBadRequest, response)
 		}
 
@@ -57,6 +57,16 @@ func (hdl *reviewHandler) Create() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
+				return c.JSON(http.StatusNotFound, response)
 			}
 
 			response["message"] = "internal server error"

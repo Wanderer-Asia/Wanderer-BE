@@ -72,7 +72,7 @@ func (router *Routes) TourRouter() {
 	router.Server.GET("/tours", router.TourHandler.GetAll())
 	router.Server.POST("/tours", router.TourHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.PUT("/tours/:id", router.TourHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
-	router.Server.GET("/tours/:id", router.TourHandler.GetDetail(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/tours/:id", router.TourHandler.GetDetail())
 }
 
 func (router *Routes) ReviewRouter() {

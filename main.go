@@ -96,13 +96,13 @@ func main() {
 
 	tourRepository := tr.NewTourRepository(dbConnection, cld)
 	tourService := ts.NewTourService(tourRepository)
-	tourHandler := th.NewTourHandler(tourService)
+	tourHandler := th.NewTourHandler(tourService, *jwtConfig)
 
 	locationRepository := lr.NewLocationRepository(dbConnection, cld)
 	locationService := ls.NewLocationService(locationRepository)
 	locationHandler := lh.NewLocationHandler(locationService)
 
-	reviewRepository := rr.NewReviewRepository(dbConnection, tourService)
+	reviewRepository := rr.NewReviewRepository(dbConnection)
 	reviewService := rs.NewReviewService(reviewRepository)
 	reviewHandler := rh.NewReviewHandler(reviewService, *jwtConfig)
 

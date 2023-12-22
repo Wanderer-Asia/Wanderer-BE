@@ -2,7 +2,6 @@ package reviews
 
 import (
 	"time"
-	"wanderer/features/users"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,9 +12,15 @@ type Review struct {
 	Text   string
 	Rating float32
 
-	User users.User
+	User User
 
 	CreatedAt time.Time
+}
+
+type User struct {
+	Id    uint
+	Name  string
+	Image string
 }
 
 type Handler interface {
@@ -24,10 +29,8 @@ type Handler interface {
 
 type Repository interface {
 	Create(userId uint, newReview Review) error
-	// GetByTourId(tourId uint) ([]Review, error)
 }
 
 type Service interface {
 	Create(userId uint, newReview Review) error
-	// GetAverage(tourId uint) (float32, error)
 }

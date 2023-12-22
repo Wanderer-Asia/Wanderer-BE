@@ -323,7 +323,7 @@ type Tour struct {
 	Finish      time.Time
 	Quota       int
 	Available   int
-	Rating      float32
+	Rating      *float32
 
 	Picture   []File `gorm:"many2many:tour_attachment;"`
 	Itinerary []Itinerary
@@ -373,7 +373,7 @@ func (mod *Tour) ToEntity(excludeFacility []Facility) *bookings.Tour {
 		ent.Available = mod.Available
 	}
 
-	if mod.Rating != 0 {
+	if mod.Rating != nil {
 		ent.Rating = mod.Rating
 	}
 
