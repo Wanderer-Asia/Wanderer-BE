@@ -155,7 +155,6 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 		return nil, err
 	}
 
-	modBooking.Code = 0
 	modBooking.User = User{}
 	modBooking.Tour = Tour{}
 	modBooking.Status = ""
