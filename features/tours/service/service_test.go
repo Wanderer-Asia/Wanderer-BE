@@ -6,9 +6,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"wanderer/features/airlines"
-	"wanderer/features/facilities"
-	"wanderer/features/locations"
 	"wanderer/features/tours"
 	"wanderer/features/tours/mocks"
 	"wanderer/helpers/filters"
@@ -33,7 +30,7 @@ func TestTourServiceGetAll(t *testing.T) {
 			Thumbnail: tours.File{
 				Raw: strings.NewReader("case image"),
 			},
-			Location: locations.Location{
+			Location: tours.Location{
 				Id: 1,
 			},
 		},
@@ -48,7 +45,7 @@ func TestTourServiceGetAll(t *testing.T) {
 			Thumbnail: tours.File{
 				Raw: strings.NewReader("case image"),
 			},
-			Location: locations.Location{
+			Location: tours.Location{
 				Id: 1,
 			},
 		},
@@ -122,14 +119,14 @@ func TestTourServiceGetDetail(t *testing.T) {
 			{Location: "location 2", Description: "description 2"},
 			{Location: "location 3", Description: "description 3"},
 		},
-		FacilityInclude: []facilities.Facility{
+		FacilityInclude: []tours.Facility{
 			{Id: 1},
 			{Id: 2},
 		},
-		Airline: airlines.Airline{
+		Airline: tours.Airline{
 			Id: 3,
 		},
-		Location: locations.Location{
+		Location: tours.Location{
 			Id: 1,
 		},
 	}
@@ -194,14 +191,14 @@ func TestTourServiceCreate(t *testing.T) {
 			{Location: "location 2", Description: "description 2"},
 			{Location: "location 3", Description: "description 3"},
 		},
-		FacilityInclude: []facilities.Facility{
+		FacilityInclude: []tours.Facility{
 			{Id: 1},
 			{Id: 2},
 		},
-		Airline: airlines.Airline{
+		Airline: tours.Airline{
 			Id: 3,
 		},
-		Location: locations.Location{
+		Location: tours.Location{
 			Id: 1,
 		},
 	}
@@ -358,14 +355,14 @@ func TestTourServiceUpdate(t *testing.T) {
 			{Location: "location 2", Description: "description 2"},
 			{Location: "location 3", Description: "description 3"},
 		},
-		FacilityInclude: []facilities.Facility{
+		FacilityInclude: []tours.Facility{
 			{Id: 1},
 			{Id: 2},
 		},
-		Airline: airlines.Airline{
+		Airline: tours.Airline{
 			Id: 3,
 		},
-		Location: locations.Location{
+		Location: tours.Location{
 			Id: 1,
 		},
 	}
@@ -439,16 +436,6 @@ func TestTourServiceUpdate(t *testing.T) {
 		assert.ErrorContains(t, err, "quota")
 	})
 
-	t.Run("invalid thumbnail", func(t *testing.T) {
-		caseData := data
-		caseData.Thumbnail.Raw = nil
-
-		err := srv.Update(ctx, 1, caseData)
-
-		assert.ErrorContains(t, err, "validate")
-		assert.ErrorContains(t, err, "thumbnail")
-	})
-
 	t.Run("invalid itinerary", func(t *testing.T) {
 		caseData := data
 		caseData.Itinerary = nil
@@ -497,107 +484,6 @@ func TestTourServiceUpdate(t *testing.T) {
 		repo.On("Update", ctx, uint(1), caseData).Return(nil).Once()
 
 		err := srv.Update(ctx, 1, caseData)
-
-		assert.NoError(t, err)
-
-		repo.AssertExpectations(t)
-	})
-}
-
-func TestTourServiceGetByLocation(t *testing.T) {
-	repo := mocks.NewRepository(t)
-	srv := NewTourService(repo)
-	ctx := context.Background()
-
-	data := []tours.Tour{
-		{
-			Id:       1,
-			Title:    "Jepang Winter Golden Route & Mount Fuji",
-			Price:    30000000,
-			Discount: 10,
-			Start:    time.Now(),
-			Quota:    25,
-			Rating:   4.8,
-			Thumbnail: tours.File{
-				Raw: strings.NewReader("case image"),
-			},
-			Location: locations.Location{
-				Id: 1,
-			},
-		},
-		{
-			Id:       2,
-			Title:    "Jepang Winter Golden Route & Mount Fuji",
-			Price:    30000000,
-			Discount: 10,
-			Start:    time.Now(),
-			Quota:    25,
-			Rating:   4.8,
-			Thumbnail: tours.File{
-				Raw: strings.NewReader("case image"),
-			},
-			Location: locations.Location{
-				Id: 1,
-			},
-		},
-	}
-
-	t.Run("error from repository", func(t *testing.T) {
-		repo.On("GetByLocation", ctx, uint(1)).Return(nil, errors.New("some error from repository")).Once()
-
-		result, err := srv.GetByLocation(ctx, uint(1))
-
-		assert.ErrorContains(t, err, "some error from repository")
-		assert.Nil(t, result)
-
-		repo.AssertExpectations(t)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		resultData := data
-
-		repo.On("GetByLocation", ctx, uint(1)).Return(resultData, nil).Once()
-
-		result, err := srv.GetByLocation(ctx, uint(1))
-
-		assert.NoError(t, err)
-		assert.Equal(t, data, result)
-
-		repo.AssertExpectations(t)
-	})
-}
-
-func TestTourServiceUpdateRating(t *testing.T) {
-	repo := mocks.NewRepository(t)
-	srv := NewTourService(repo)
-	ctx := context.Background()
-
-	var data = tours.Tour{
-		Rating: 4.5,
-	}
-
-	t.Run("error from repository", func(t *testing.T) {
-		repo.On("UpdateRating", ctx, uint(1), data).Return(errors.New("some error from repository")).Once()
-
-		err := srv.UpdateRating(ctx, uint(1), data)
-
-		assert.ErrorContains(t, err, "some error from repository")
-
-		repo.AssertExpectations(t)
-	})
-
-	t.Run("invalid id", func(t *testing.T) {
-		err := srv.UpdateRating(ctx, uint(0), data)
-
-		assert.ErrorContains(t, err, "id")
-
-		repo.AssertExpectations(t)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		repo.On("UpdateRating", ctx, uint(1), data).Return(nil).Once()
-
-		err := srv.UpdateRating(ctx, uint(1), data)
 
 		assert.NoError(t, err)
 

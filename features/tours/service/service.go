@@ -39,54 +39,45 @@ func (srv *tourService) GetDetail(ctx context.Context, id uint) (*tours.Tour, er
 	return result, nil
 }
 
-func (srv *tourService) GetByLocation(ctx context.Context, id uint) ([]tours.Tour, error) {
-	result, err := srv.repo.GetByLocation(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
 func (srv *tourService) Create(ctx context.Context, data tours.Tour) error {
 	if data.Title == "" {
-		return errors.New("validate: please fill title correctly")
+		return errors.New("validate: title can't be empty")
 	}
 
 	if data.Description == "" {
-		return errors.New("validate: please fill description correctly")
+		return errors.New("validate: description can't be empty")
 	}
 
 	if data.Price == 0 {
-		return errors.New("validate: please fill price correctly")
+		return errors.New("validate: price can't be empty")
 	}
 
 	if data.Start.IsZero() {
-		return errors.New("validate: please fill start date correctly")
+		return errors.New("validate: start date can't be empty")
 	}
 
 	if data.Finish.IsZero() {
-		return errors.New("validate: please fill finish date correctly")
+		return errors.New("validate: finish date can't be empty")
 	}
 
 	if data.Quota == 0 {
-		return errors.New("validate: please fill quota correctly")
+		return errors.New("validate: quota can't be empty")
 	}
 
 	if data.Thumbnail.Raw == nil {
-		return errors.New("validate: please fill thumbnail correctly")
+		return errors.New("validate: thumbnail can't be empty")
 	}
 
 	if len(data.Itinerary) == 0 {
-		return errors.New("validate: please fill itinerary correctly")
+		return errors.New("validate: itinerary can't be empty")
 	}
 
 	if data.Location.Id == 0 {
-		return errors.New("validate: please fill location correctly")
+		return errors.New("validate: location can't be empty")
 	}
 
 	if data.Airline.Id == 0 {
-		return errors.New("validate: please fill airline correctly")
+		return errors.New("validate: airline can't be empty")
 	}
 
 	if err := srv.repo.Create(ctx, data); err != nil {
@@ -102,58 +93,42 @@ func (srv *tourService) Update(ctx context.Context, id uint, data tours.Tour) er
 	}
 
 	if data.Title == "" {
-		return errors.New("validate: please fill title correctly")
+		return errors.New("validate: title can't be empty")
 	}
 
 	if data.Description == "" {
-		return errors.New("validate: please fill description correctly")
+		return errors.New("validate: description can't be empty")
 	}
 
 	if data.Price == 0 {
-		return errors.New("validate: please fill price correctly")
+		return errors.New("validate: price can't be empty")
 	}
 
 	if data.Start.IsZero() {
-		return errors.New("validate: please fill start date correctly")
+		return errors.New("validate: start date can't be empty")
 	}
 
 	if data.Finish.IsZero() {
-		return errors.New("validate: please fill finish date correctly")
+		return errors.New("validate: finish date can't be empty")
 	}
 
 	if data.Quota == 0 {
-		return errors.New("validate: please fill quota correctly")
-	}
-
-	if data.Thumbnail.Raw == nil {
-		return errors.New("validate: please fill thumbnail correctly")
+		return errors.New("validate: quota can't be empty")
 	}
 
 	if len(data.Itinerary) == 0 {
-		return errors.New("validate: please fill itinerary correctly")
+		return errors.New("validate: itinerary can't be empty")
 	}
 
 	if data.Location.Id == 0 {
-		return errors.New("validate: please fill location correctly")
+		return errors.New("validate: location can't be empty")
 	}
 
 	if data.Airline.Id == 0 {
-		return errors.New("validate: please fill airline correctly")
+		return errors.New("validate: airline can't be empty")
 	}
 
 	if err := srv.repo.Update(ctx, id, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (srv *tourService) UpdateRating(ctx context.Context, id uint, data tours.Tour) error {
-	if id == 0 {
-		return errors.New("validate: invalid tour id")
-	}
-
-	if err := srv.repo.UpdateRating(ctx, id, data); err != nil {
 		return err
 	}
 

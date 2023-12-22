@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"wanderer/features/locations"
 	"wanderer/helpers/filters"
@@ -139,8 +138,6 @@ func (repo *locationRepository) GetDetail(ctx context.Context, id uint) (*locati
 		return nil, err
 	}
 	mod.Tours = modTour
-
-	fmt.Println(modTour)
 
 	return mod.ToEntity(), nil
 }

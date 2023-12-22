@@ -2,8 +2,7 @@ package repository
 
 import (
 	"context"
-	fr "wanderer/features/facilities/repository"
-	rr "wanderer/features/reviews/repository"
+	"errors"
 	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 	"wanderer/utils/files"
@@ -64,7 +63,16 @@ func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]t
 		}
 	}
 
-	qry = qry.Joins("Location").Limit(flt.Pagination.Limit).Offset(flt.Pagination.Start)
+	qry = qry.Joins("Location")
+
+	if flt.Pagination.Limit != 0 {
+		qry = qry.Limit(flt.Pagination.Limit)
+	}
+
+	if flt.Pagination.Start != 0 {
+		qry = qry.Offset(flt.Pagination.Start)
+	}
+
 	if err := qry.Find(&mod).Error; err != nil {
 		return nil, 0, err
 	}
@@ -80,6 +88,9 @@ func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]t
 func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour, error) {
 	var modTour = new(Tour)
 	if err := repo.mysqlDB.WithContext(ctx).Joins("Airline").Joins("Location").Where(&Tour{Id: id}).First(modTour).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: tour not found")
+		}
 		return nil, err
 	}
 
@@ -89,7 +100,7 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 	}
 	modTour.Picture = modFile
 
-	var modFacilityInclude []fr.Facility
+	var modFacilityInclude []Facility
 	if err := repo.mysqlDB.WithContext(ctx).Joins("JOIN tour_facility ON tour_facility.facility_id = facilities.id AND tour_facility.tour_id = ?", id).Find(&modFacilityInclude).Error; err != nil {
 		return nil, err
 	}
@@ -100,7 +111,7 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 		facilityIncludes = append(facilityIncludes, facility.Id)
 	}
 
-	var modFacilityExclude []fr.Facility
+	var modFacilityExclude []Facility
 	if err := repo.mysqlDB.WithContext(ctx).Where("id not in (?)", facilityIncludes).Find(&modFacilityExclude).Error; err != nil {
 		return nil, err
 	}
@@ -111,41 +122,13 @@ func (repo *tourRepository) GetDetail(ctx context.Context, id uint) (*tours.Tour
 	}
 	modTour.Itinerary = modItinerary
 
-	var modReviews []rr.Review
+	var modReviews []Review
 	if err := repo.mysqlDB.WithContext(ctx).Where("tour_id = ?", id).Joins("User").Find(&modReviews).Error; err != nil {
 		return nil, err
 	}
 	modTour.Reviews = modReviews
 
 	return modTour.ToEntity(modFacilityExclude), nil
-}
-
-func (repo *tourRepository) GetByLocation(ctx context.Context, id uint) ([]tours.Tour, error) {
-	var mod []Tour
-
-	qry := repo.mysqlDB.WithContext(ctx).Model(&Tour{})
-
-	qry = qry.Select(
-		"tours.id",
-		"tours.title",
-		"tours.quota",
-		"tours.discount",
-		"tours.rating",
-		"tours.thumbnail",
-		"tours.start",
-	).Where("location_id = ?", id)
-
-	qry = qry.Joins("Location")
-	if err := qry.Find(&mod).Error; err != nil {
-		return nil, err
-	}
-
-	var result []tours.Tour
-	for _, tour := range mod {
-		result = append(result, *tour.ToEntity(nil))
-	}
-
-	return result, nil
 }
 
 func (repo *tourRepository) Create(ctx context.Context, data tours.Tour) error {
@@ -206,6 +189,14 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 	var mod = new(Tour)
 	mod.FromEntity(data)
 
+	var modOldTour = new(Tour)
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Tour{Id: id}).First(modOldTour).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("not found: tour not found")
+		}
+		return err
+	}
+
 	tx := repo.mysqlDB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -254,11 +245,13 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 	}
 
 	err = tx.Transaction(func(txTour *gorm.DB) error {
-		url, err := repo.cloud.Upload(ctx, "tours", data.Thumbnail.Raw)
-		if err != nil {
-			return err
+		if mod.ThumbnailRaw != nil {
+			url, err := repo.cloud.Upload(ctx, "tours", data.Thumbnail.Raw)
+			if err != nil {
+				return err
+			}
+			mod.ThumbnailUrl = *url
 		}
-		mod.ThumbnailUrl = *url
 
 		return txTour.Where(&Tour{Id: id}).Updates(mod).Error
 	})
@@ -268,18 +261,6 @@ func (repo *tourRepository) Update(ctx context.Context, id uint, data tours.Tour
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo *tourRepository) UpdateRating(ctx context.Context, id uint, data tours.Tour) error {
-	var model = new(Tour)
-	model.FromEntity(data)
-	model.Rating = data.Rating
-
-	if err := repo.mysqlDB.Where(&Tour{Id: id}).Updates(model).Error; err != nil {
 		return err
 	}
 

@@ -4,10 +4,6 @@ import (
 	"context"
 	"io"
 	"time"
-	"wanderer/features/airlines"
-	"wanderer/features/facilities"
-	"wanderer/features/locations"
-	"wanderer/features/reviews"
 	"wanderer/helpers/filters"
 
 	"github.com/labstack/echo/v4"
@@ -31,14 +27,11 @@ type Tour struct {
 
 	Itinerary []Itinerary
 
-	FacilityInclude []facilities.Facility
-	FacilityExclude []facilities.Facility
-
-	Airline airlines.Airline
-
-	Location locations.Location
-
-	Reviews []reviews.Review
+	FacilityInclude []Facility
+	FacilityExclude []Facility
+	Airline         Airline
+	Location        Location
+	Reviews         []Review
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -64,6 +57,36 @@ type Itinerary struct {
 	DeletedAt time.Time
 }
 
+type Facility struct {
+	Id   uint
+	Name string
+}
+
+type Airline struct {
+	Id   uint
+	Name string
+}
+
+type Location struct {
+	Id   uint
+	Name string
+}
+
+type Review struct {
+	Id        uint
+	Text      string
+	Rating    float32
+	CreatedAt time.Time
+	User      User
+	TourId    uint
+}
+
+type User struct {
+	Id    uint
+	Name  string
+	Image string
+}
+
 type Handler interface {
 	GetAll() echo.HandlerFunc
 	GetDetail() echo.HandlerFunc
@@ -74,17 +97,13 @@ type Handler interface {
 type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
 	GetDetail(ctx context.Context, id uint) (*Tour, error)
-	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
-	UpdateRating(ctx context.Context, id uint, data Tour) error
 }
 
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Tour, int, error)
 	GetDetail(ctx context.Context, id uint) (*Tour, error)
-	GetByLocation(ctx context.Context, id uint) ([]Tour, error)
 	Create(ctx context.Context, data Tour) error
 	Update(ctx context.Context, id uint, data Tour) error
-	UpdateRating(ctx context.Context, id uint, data Tour) error
 }
