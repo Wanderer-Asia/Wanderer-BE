@@ -12,11 +12,10 @@ type UserResponse struct {
 	Email string `json:"email,omitempty"`
 	Image string `json:"image,omitempty"`
 	Role  string `json:"role,omitempty"`
-	Token string `json:"token,omitempty"`
 
-	TourCount   int               `json:"tour_count,omitempty"`
-	ReviewCount int               `json:"review_count,omitempty"`
-	Bookings    []BookingResponse `json:"bookings,omitempty"`
+	TourCount   int               `json:"tour_count"`
+	ReviewCount int               `json:"review_count"`
+	Bookings    []BookingResponse `json:"bookings"`
 }
 
 func (res *UserResponse) FromEntity(ent users.User) {
@@ -36,6 +35,14 @@ func (res *UserResponse) FromEntity(ent users.User) {
 
 	if ent.Role != "" {
 		res.Role = ent.Role
+	}
+
+	if ent.Email != "" {
+		res.Email = ent.Email
+	}
+
+	if ent.Phone != "" {
+		res.Phone = ent.Phone
 	}
 
 	if ent.TourCount != 0 {
