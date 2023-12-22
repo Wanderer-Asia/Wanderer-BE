@@ -62,7 +62,7 @@ func (res *UserResponse) FromEntity(ent users.User) {
 }
 
 type BookingResponse struct {
-	Code        int          `json:"code,omitempty"`
+	Code        int          `json:"booking_code,omitempty"`
 	Status      string       `json:"status,omitempty"`
 	DetailCount int          `json:"detail_count,omitempty"`
 	Tour        TourResponse `json:"tour,omitempty"`
@@ -87,7 +87,7 @@ func (res *BookingResponse) FromEntity(ent users.Booking) {
 }
 
 type TourResponse struct {
-	Id    uint   `json:"id,omitempty"`
+	Id    uint   `json:"tour_id,omitempty"`
 	Title string `json:"title,omitempty"`
 }
 
