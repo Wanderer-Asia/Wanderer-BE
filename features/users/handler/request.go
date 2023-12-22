@@ -56,7 +56,7 @@ func (req *LoginRequest) ToEntity() *users.User {
 }
 
 type UpdateRequest struct {
-	Name     string `form:"name"`
+	Name     string `form:"fullname"`
 	Phone    string `form:"phone"`
 	Email    string `form:"email"`
 	Password string `form:"password"`
