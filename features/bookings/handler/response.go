@@ -216,3 +216,75 @@ func (res *UserResponse) FromEntity(ent bookings.User) {
 		res.Image = "default"
 	}
 }
+
+type ExportFileResponse struct {
+	Code        int     `json:"booking_code,omitempty"`
+	DetailCount int     `json:"detail_count,omitempty"`
+	Status      string  `json:"status,omitempty"`
+	Total       float64 `json:"total,omitempty"`
+
+	Tour *ExportFileTourResponse `json:"tour,omitempty"`
+
+	User *UserResponse `json:"user,omitempty"`
+}
+
+func (res *ExportFileResponse) FromEntity(ent bookings.Booking) {
+	if ent.Code != 0 {
+		res.Code = ent.Code
+	}
+
+	if len(ent.Detail) != 0 {
+		res.DetailCount = len(ent.Detail)
+	}
+
+	if ent.Status != "" {
+		res.Status = ent.Status
+	}
+
+	if ent.Total != 0 {
+		res.Total = ent.Total
+	}
+
+	if !reflect.ValueOf(ent.Tour).IsZero() {
+		var tmpTour = new(ExportFileTourResponse)
+		tmpTour.FromEntity(ent.Tour)
+		res.Tour = tmpTour
+	}
+
+	if !reflect.ValueOf(ent.User).IsZero() {
+		var tmpUser = new(UserResponse)
+		tmpUser.FromEntity(ent.User)
+		res.User = tmpUser
+	}
+}
+
+type ExportFileTourResponse struct {
+	Id       uint       `json:"tour_id,omitempty"`
+	Title    string     `json:"title,omitempty"`
+	Start    *time.Time `json:"start,omitempty"`
+	Finish   *time.Time `json:"finish,omitempty"`
+	Duration int        `json:"duration,omitempty"`
+}
+
+func (res *ExportFileTourResponse) FromEntity(ent bookings.Tour) {
+	if ent.Id != 0 {
+		res.Id = ent.Id
+	}
+
+	if ent.Title != "" {
+		res.Title = ent.Title
+	}
+
+	if !ent.Start.IsZero() {
+		res.Start = &ent.Start
+	}
+
+	if !ent.Finish.IsZero() {
+		res.Finish = &ent.Finish
+	}
+
+	diff := res.Start.Sub(*res.Finish)
+	days := int(diff.Hours() / 24)
+	res.Duration = days
+
+}

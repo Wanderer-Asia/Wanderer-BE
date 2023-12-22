@@ -2,9 +2,12 @@ package handler
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"wanderer/config"
@@ -13,7 +16,9 @@ import (
 	"wanderer/helpers/tokens"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jung-kurt/gofpdf"
 	echo "github.com/labstack/echo/v4"
+	"github.com/xuri/excelize/v2"
 )
 
 func NewBookingHandler(bookingService bookings.Service, jwtConfig config.JWT) bookings.Handler {
@@ -286,5 +291,182 @@ func (hdl *bookingHandler) PaymentNotification() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, "ok")
+	}
+}
+
+func (hdl *bookingHandler) ExportFileCsv(data []ExportFileResponse) error {
+	folderPath := "./files/"
+	fileName := "transaction-list.csv"
+	path := filepath.Join(folderPath, fileName)
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	headers := []string{"Booking Code", "Name", "Tour Package", "Duration", "Price", "Status"}
+	err = writer.Write(headers)
+	if err != nil {
+		return err
+	}
+
+	for _, booking := range data {
+		row := []string{
+			strconv.FormatInt(int64(booking.Code), 10),
+			booking.User.Name,
+			booking.Tour.Title,
+			strconv.FormatInt(int64(booking.Tour.Duration), 10),
+			strconv.FormatInt(int64(booking.Total), 10),
+			booking.Status,
+		}
+		err := writer.Write(row)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) error {
+	folderPath := "./files/"
+	fileName := "transaction-list.xlsx"
+	path := filepath.Join(folderPath, fileName)
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	xlsx := excelize.NewFile()
+
+	sheetName := "Sheet1"
+	xlsx.NewSheet(sheetName)
+
+	style, err := xlsx.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"#ffc430"}, Pattern: 1},
+	})
+	err = xlsx.SetCellStyle("Sheet1", "A1", "F1", style)
+
+	headers := []string{"Booking Code", "Name", "Tour Package", "Duration", "Price", "Status"}
+	for col, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+col)
+		xlsx.SetCellValue(sheetName, cell, header)
+	}
+
+	for row, booking := range data {
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("A%d", row+2), strconv.FormatInt(int64(booking.Code), 10))
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("B%d", row+2), booking.User.Name)
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("C%d", row+2), booking.Tour.Title)
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("D%d", row+2), booking.Tour.Duration)
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("E%d", row+2), booking.Total)
+		xlsx.SetCellValue(sheetName, fmt.Sprintf("F%d", row+2), booking.Status)
+	}
+
+	err = xlsx.SaveAs(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) error {
+	folderPath := "./files/"
+	fileName := "transaction-list.pdf"
+	path := filepath.Join(folderPath, fileName)
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "", 14)
+	pdf.SetFontSize(11)
+	pdf.SetFillColor(255, 196, 48)
+
+	headers := []string{"Booking Code", "Name", "Tour Package", "Duration", "Price", "Status"}
+	for _, header := range headers {
+		pdf.CellFormat(30, 10, header, "1", 0, "C", true, 0, "")
+	}
+
+	for _, booking := range data {
+		pdf.Ln(-1)
+		pdf.CellFormat(30, 10, strconv.FormatInt(int64(booking.Code), 10), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, booking.User.Name, "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, booking.Tour.Title, "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, strconv.FormatInt(int64(booking.Tour.Duration), 10), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, strconv.FormatInt(int64(booking.Total), 10), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, booking.Status, "1", 0, "C", false, 0, "")
+	}
+
+	err = pdf.OutputFileAndClose(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+func (hdl *bookingHandler) ExportReportTransaction() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+
+		result, err := hdl.bookingService.Export(context.Background())
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		var data []ExportFileResponse
+		for _, export := range result {
+			var tmpExport = new(ExportFileResponse)
+			tmpExport.FromEntity(export)
+
+			tmpExport.User.Image = ""
+
+			data = append(data, *tmpExport)
+		}
+
+		export := c.QueryParam("type")
+		if export == "csv" {
+			err = hdl.ExportFileCsv(data)
+			if err != nil {
+				c.Logger().Error(err)
+				response["message"] = "Error exporting data"
+				return c.JSON(http.StatusInternalServerError, response)
+			}
+		}
+
+		if export == "excel" {
+			err = hdl.ExportFileExcel(data)
+			if err != nil {
+				c.Logger().Error(err)
+				response["message"] = "Error exporting data"
+				return c.JSON(http.StatusInternalServerError, response)
+			}
+		}
+
+		if export == "pdf" {
+			err = hdl.ExportFilePdf(data)
+			if err != nil {
+				c.Logger().Error(err)
+				response["message"] = "Error exporting data"
+				return c.JSON(http.StatusInternalServerError, response)
+			}
+		}
+
+		response["message"] = "export transaction list success"
+		return c.JSON(http.StatusOK, response)
 	}
 }

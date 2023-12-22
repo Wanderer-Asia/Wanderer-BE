@@ -98,3 +98,12 @@ func (srv *bookingService) Update(ctx context.Context, code int, data bookings.B
 
 	return result, nil
 }
+
+func (srv *bookingService) Export(ctx context.Context) ([]bookings.Booking, error) {
+	result, err := srv.repo.Export(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
