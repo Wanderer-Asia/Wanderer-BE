@@ -95,6 +95,20 @@ func (_m *Service) GetDetail(ctx context.Context, id uint) (*locations.Location,
 	return r0, r1
 }
 
+// Import provides a mock function with given fields: ctx, data
+func (_m *Service) Import(ctx context.Context, data []locations.Location) error {
+	ret := _m.Called(ctx, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []locations.Location) error); ok {
+		r0 = rf(ctx, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: ctx, id, data
 func (_m *Service) Update(ctx context.Context, id uint, data locations.Location) error {
 	ret := _m.Called(ctx, id, data)

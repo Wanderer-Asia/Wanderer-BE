@@ -82,3 +82,11 @@ func (srv *locationService) GetDetail(ctx context.Context, id uint) (*locations.
 
 	return result, nil
 }
+
+func (srv *locationService) Import(ctx context.Context, data []locations.Location) error {
+	if err := srv.repo.Import(ctx, data); err != nil {
+		return err
+	}
+
+	return nil
+}

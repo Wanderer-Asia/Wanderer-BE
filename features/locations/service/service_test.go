@@ -218,3 +218,41 @@ func TestLocationServiceGetByLocation(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestLocationServiceImport(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = NewLocationService(repo)
+	var ctx = context.Background()
+	var caseData = []locations.Location{
+		{
+			Id:       1,
+			Name:     "Test 1",
+			ImageUrl: "test",
+		},
+		{
+			Id:       2,
+			Name:     "Tes 2",
+			ImageUrl: "test",
+		},
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("Import", ctx, caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Import(ctx, caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		repo.On("Import", ctx, caseData).Return(nil).Once()
+
+		err := srv.Import(ctx, caseData)
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}

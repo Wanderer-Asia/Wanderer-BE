@@ -78,7 +78,7 @@ func (repo *reportRepository) GetBookingCurrentYear(ctx context.Context) ([]repo
 
 func (repo *reportRepository) GetRecentBooking(ctx context.Context) ([]reports.Booking, error) {
 	var modBooking []Booking
-	if err := repo.mysqlDB.WithContext(ctx).Model(&Booking{}).Joins("Tour.Location").Order("booked_at desc").Limit(10).Find(&modBooking).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Model(&Booking{}).Joins("Tour.Location").Order("booked_at desc").Limit(5).Find(&modBooking).Error; err != nil {
 		return nil, err
 	}
 
