@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,6 +17,7 @@ import (
 	"wanderer/features/bookings"
 	"wanderer/helpers/filters"
 	"wanderer/helpers/tokens"
+	"wanderer/utils/files"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jung-kurt/gofpdf"
@@ -21,16 +25,18 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func NewBookingHandler(bookingService bookings.Service, jwtConfig config.JWT) bookings.Handler {
+func NewBookingHandler(bookingService bookings.Service, jwtConfig config.JWT, cloud files.Cloud) bookings.Handler {
 	return &bookingHandler{
 		bookingService: bookingService,
 		jwtConfig:      jwtConfig,
+		cloud:          cloud,
 	}
 }
 
 type bookingHandler struct {
 	bookingService bookings.Service
 	jwtConfig      config.JWT
+	cloud          files.Cloud
 }
 
 func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
@@ -332,16 +338,8 @@ func (hdl *bookingHandler) ExportFileCsv(data []ExportFileResponse) error {
 	return nil
 }
 
-func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) error {
-	folderPath := "./files/"
-	fileName := "transaction-list.xlsx"
-	path := filepath.Join(folderPath, fileName)
-
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) (string, error) {
+	var buf bytes.Buffer
 
 	xlsx := excelize.NewFile()
 
@@ -368,24 +366,58 @@ func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) error {
 		xlsx.SetCellValue(sheetName, fmt.Sprintf("F%d", row+2), booking.Status)
 	}
 
-	err = xlsx.SaveAs(path)
+	err = xlsx.Write(&buf)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return nil
+	result, err := hdl.uploadToSupabase("excel-folder", "transaction-list.xlsx", &buf)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
-func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) error {
-	folderPath := "./files/"
-	fileName := "transaction-list.pdf"
-	path := filepath.Join(folderPath, fileName)
+func (hdl *bookingHandler) uploadToSupabase(folderName, fileName string, fileContent *bytes.Buffer) (string, error) {
+	apiKey := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cXBiYWFzaWJleXBud21rY3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzMzIyMDgsImV4cCI6MjAxODkwODIwOH0.XMxfl6EaSAsjQeKTYhaYw5QgYXmucqyLx5Fhv3alzfs"
+	projectID := "otqpbaasibeypnwmkczd"
 
-	file, err := os.Create(path)
+	uploadURL := fmt.Sprintf("https://%s.supabase.co/storage/v1/object/%s/%s", projectID, folderName, fileName)
+
+	fileContentBase64 := base64.StdEncoding.EncodeToString(fileContent.Bytes())
+
+	req, err := http.NewRequest("POST", uploadURL, bytes.NewBufferString(fileContentBase64))
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer file.Close()
+
+	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Failed to upload file to Supabase Storage. Status code: %d, Response: %s", resp.StatusCode, respBody)
+	}
+
+	fileURL := fmt.Sprintf("https://%s.supabase.co/%s/%s", projectID, folderName, fileName)
+
+	return fileURL, nil
+}
+
+func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) (string, error) {
+	var buf bytes.Buffer
 
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
@@ -408,12 +440,17 @@ func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) error {
 		pdf.CellFormat(30, 10, booking.Status, "1", 0, "C", false, 0, "")
 	}
 
-	err = pdf.OutputFileAndClose(path)
+	err := pdf.Output(&buf)
 	if err != nil {
 		panic(err)
 	}
 
-	return nil
+	result, err := hdl.uploadToSupabase("excel-folder", "transaction-list.pdf", &buf)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func (hdl *bookingHandler) ExportReportTransaction() echo.HandlerFunc {
@@ -448,22 +485,30 @@ func (hdl *bookingHandler) ExportReportTransaction() echo.HandlerFunc {
 			}
 		}
 
-		if export == "excel" {
-			err = hdl.ExportFileExcel(data)
+		if exportType := c.QueryParam("type"); exportType == "excel" {
+			url, err := hdl.ExportFileExcel(data)
 			if err != nil {
 				c.Logger().Error(err)
 				response["message"] = "Error exporting data"
 				return c.JSON(http.StatusInternalServerError, response)
 			}
+
+			response["message"] = "export transaction list success"
+			response["download_url"] = url
+			return c.JSON(http.StatusOK, response)
 		}
 
-		if export == "pdf" {
-			err = hdl.ExportFilePdf(data)
+		if exportType := c.QueryParam("type"); exportType == "pdf" {
+			url, err := hdl.ExportFilePdf(data)
 			if err != nil {
 				c.Logger().Error(err)
 				response["message"] = "Error exporting data"
 				return c.JSON(http.StatusInternalServerError, response)
 			}
+
+			response["message"] = "export transaction list success"
+			response["download_url"] = url
+			return c.JSON(http.StatusOK, response)
 		}
 
 		response["message"] = "export transaction list success"
