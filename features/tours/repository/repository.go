@@ -54,6 +54,7 @@ func (repo *tourRepository) GetAll(ctx context.Context, flt filters.Filter) ([]t
 
 		switch flt.Sort.Column {
 		case "rating", "price", "discount":
+			qry = qry.Order(flt.Sort.Column + " " + dir)
 		case "location":
 			qry = qry.Order("Location.name " + dir)
 		case "sold":

@@ -39,6 +39,8 @@ type Handler interface {
 	Create() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	ImportTemplate() echo.HandlerFunc
+	Import() echo.HandlerFunc
 }
 
 type Service interface {
@@ -47,6 +49,7 @@ type Service interface {
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error
+	Import(ctx context.Context, data []Location) error
 }
 
 type Repository interface {
@@ -55,4 +58,5 @@ type Repository interface {
 	Create(ctx context.Context, data Location) error
 	Update(ctx context.Context, id uint, data Location) error
 	Delete(ctx context.Context, id uint) error
+	Import(ctx context.Context, data []Location) error
 }

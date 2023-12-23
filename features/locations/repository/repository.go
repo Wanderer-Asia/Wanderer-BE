@@ -9,6 +9,7 @@ import (
 	"wanderer/utils/files"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func NewLocationRepository(mysqlDB *gorm.DB, cloud files.Cloud) locations.Repository {
@@ -140,4 +141,25 @@ func (repo *locationRepository) GetDetail(ctx context.Context, id uint) (*locati
 	mod.Tours = modTour
 
 	return mod.ToEntity(), nil
+}
+
+func (repo *locationRepository) Import(ctx context.Context, data []locations.Location) error {
+	var model []Location
+	for _, air := range data {
+		var tmpAir = new(Location)
+		tmpAir.FromEntity(air)
+
+		model = append(model, *tmpAir)
+	}
+
+	qry := repo.mysqlDB.WithContext(ctx).Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(model, 1000)
+	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1062") {
+			return nil
+		}
+
+		return qry.Error
+	}
+
+	return nil
 }

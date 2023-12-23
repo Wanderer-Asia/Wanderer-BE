@@ -3,7 +3,9 @@
 package mocks
 
 import (
+	context "context"
 	airlines "wanderer/features/airlines"
+
 	filters "wanderer/helpers/filters"
 
 	mock "github.com/stretchr/testify/mock"
@@ -66,6 +68,20 @@ func (_m *Repository) GetAll(flt filters.Filter) ([]airlines.Airline, error) {
 	}
 
 	return r0, r1
+}
+
+// Import provides a mock function with given fields: ctx, data
+func (_m *Repository) Import(ctx context.Context, data []airlines.Airline) error {
+	ret := _m.Called(ctx, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []airlines.Airline) error); ok {
+		r0 = rf(ctx, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Update provides a mock function with given fields: id, updateAirline

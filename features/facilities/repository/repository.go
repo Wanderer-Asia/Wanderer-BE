@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"wanderer/features/facilities"
 	"wanderer/helpers/filters"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func NewFacilityRepository(mysqlDB *gorm.DB) facilities.Repository {
@@ -92,6 +94,27 @@ func (repo *facilityRepository) Delete(id uint) error {
 
 	if deleteQuery.RowsAffected == 0 {
 		return errors.New("not found: facility not found")
+	}
+
+	return nil
+}
+
+func (repo *facilityRepository) Import(ctx context.Context, data []facilities.Facility) error {
+	var model []Facility
+	for _, air := range data {
+		var tmpAir = new(Facility)
+		tmpAir.FromEntity(air)
+
+		model = append(model, *tmpAir)
+	}
+
+	qry := repo.mysqlDB.WithContext(ctx).Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(model, 1000)
+	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1062") {
+			return nil
+		}
+
+		return qry.Error
 	}
 
 	return nil

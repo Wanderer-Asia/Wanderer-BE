@@ -233,3 +233,51 @@ func (hdl *locationHandler) GetDetail() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, response)
 	}
 }
+
+func (hdl *locationHandler) ImportTemplate() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.Attachment("./helpers/imports/templates/location.csv", "location_import.csv")
+	}
+}
+
+func (hdl *locationHandler) Import() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response = make(map[string]any)
+		var request = new(ImportLocationRequest)
+
+		if err := request.Bind(c); err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "bad request"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		data, err := request.ToEntity()
+		if err != nil {
+			c.Logger().Error(err)
+
+			response["message"] = "bad request"
+			return c.JSON(http.StatusBadRequest, response)
+		}
+
+		if err := hdl.locationService.Import(c.Request().Context(), data); err != nil {
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "validate: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "used: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
+				return c.JSON(http.StatusConflict, response)
+			}
+
+			response["message"] = "internal server error"
+			return c.JSON(http.StatusInternalServerError, response)
+		}
+
+		response["message"] = "import location success"
+		return c.JSON(http.StatusCreated, response)
+	}
+}
