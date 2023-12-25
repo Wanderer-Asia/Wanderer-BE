@@ -121,7 +121,7 @@ func (res *LoginResponse) FromEntity(ent users.User) {
 	if ent.ImageUrl != "" {
 		res.Image = ent.ImageUrl
 	} else {
-		res.Image = "default"
+		res.Image = "https://res.cloudinary.com/dhxzinjxp/image/upload/v1703490558/asset-default/user_d5pwxw.png"
 	}
 
 	if ent.Role != "" {
