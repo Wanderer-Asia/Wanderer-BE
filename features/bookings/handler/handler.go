@@ -5,15 +5,16 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"wanderer/config"
 	"wanderer/features/bookings"
 	"wanderer/helpers/filters"
 	"wanderer/helpers/tokens"
+	"wanderer/utils/files"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jung-kurt/gofpdf"
@@ -21,16 +22,18 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func NewBookingHandler(bookingService bookings.Service, jwtConfig config.JWT) bookings.Handler {
+func NewBookingHandler(bookingService bookings.Service, jwtConfig config.JWT, cloud files.Cloud) bookings.Handler {
 	return &bookingHandler{
 		bookingService: bookingService,
 		jwtConfig:      jwtConfig,
+		cloud:          cloud,
 	}
 }
 
 type bookingHandler struct {
 	bookingService bookings.Service
 	jwtConfig      config.JWT
+	cloud          files.Cloud
 }
 
 func (hdl *bookingHandler) GetAll() echo.HandlerFunc {
@@ -294,10 +297,8 @@ func (hdl *bookingHandler) PaymentNotification() echo.HandlerFunc {
 	}
 }
 
-func (hdl *bookingHandler) ExportFileCsv(data []ExportFileResponse) error {
-	folderPath := "./files/"
-	fileName := "transaction-list.csv"
-	path := filepath.Join(folderPath, fileName)
+func (hdl *bookingHandler) ExportFileCsv(data []ExportFileResponse, c echo.Context) error {
+	path := "transaction-list.csv"
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -329,13 +330,40 @@ func (hdl *bookingHandler) ExportFileCsv(data []ExportFileResponse) error {
 		}
 	}
 
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return err
+	}
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	_, err = hdl.cloud.Upload(context.Background(), "csv-folder", file)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/csv")
+	c.Response().Header().Set(echo.HeaderContentDisposition, "attachment; filename=transaction-list.csv")
+
+	file, err = os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(c.Response().Writer, file)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) error {
-	folderPath := "./files/"
-	fileName := "transaction-list.xlsx"
-	path := filepath.Join(folderPath, fileName)
+func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse, c echo.Context) error {
+	path := "transaction-list.xlsx"
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -373,13 +401,30 @@ func (hdl *bookingHandler) ExportFileExcel(data []ExportFileResponse) error {
 		panic(err)
 	}
 
+	_, err = hdl.cloud.Upload(context.Background(), "excel-folder", file)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/xlsx")
+	c.Response().Header().Set(echo.HeaderContentDisposition, "attachment; filename=transaction-list.xlsx")
+
+	file, err = os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(c.Response().Writer, file)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) error {
-	folderPath := "./files/"
-	fileName := "transaction-list.pdf"
-	path := filepath.Join(folderPath, fileName)
+func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse, c echo.Context) error {
+	path := "transaction-list.pdf"
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -413,6 +458,25 @@ func (hdl *bookingHandler) ExportFilePdf(data []ExportFileResponse) error {
 		panic(err)
 	}
 
+	_, err = hdl.cloud.Upload(context.Background(), "pdf-folder", file)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/pdf")
+	c.Response().Header().Set(echo.HeaderContentDisposition, "attachment; filename=transaction-list.pdf")
+
+	file, err = os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(c.Response().Writer, file)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -440,30 +504,51 @@ func (hdl *bookingHandler) ExportReportTransaction() echo.HandlerFunc {
 
 		export := c.QueryParam("type")
 		if export == "csv" {
-			err = hdl.ExportFileCsv(data)
+			err = hdl.ExportFileCsv(data, c)
 			if err != nil {
 				c.Logger().Error(err)
 				response["message"] = "Error exporting data"
 				return c.JSON(http.StatusInternalServerError, response)
 			}
+
+			err = os.Remove("transaction-list.csv")
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
 
 		if export == "excel" {
-			err = hdl.ExportFileExcel(data)
+			err = hdl.ExportFileExcel(data, c)
 			if err != nil {
 				c.Logger().Error(err)
 				response["message"] = "Error exporting data"
 				return c.JSON(http.StatusInternalServerError, response)
 			}
+
+			err = os.Remove("transaction-list.xlsx")
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
 
 		if export == "pdf" {
-			err = hdl.ExportFilePdf(data)
+			err = hdl.ExportFilePdf(data, c)
 			if err != nil {
 				c.Logger().Error(err)
 				response["message"] = "Error exporting data"
 				return c.JSON(http.StatusInternalServerError, response)
 			}
+
+			err = os.Remove("transaction-list.pdf")
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
 
 		response["message"] = "export transaction list success"
