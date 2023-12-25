@@ -77,7 +77,7 @@ func (res *TourResponse) FromEntity(ent locations.Tour, loc locations.Location) 
 	if ent.Thumbnail != "" {
 		res.Thumbnail = ent.Thumbnail
 	} else {
-		res.Thumbnail = "default"
+		res.Thumbnail = "https://res.cloudinary.com/dhxzinjxp/image/upload/v1703490571/asset-default/tour_zk9i73.png"
 	}
 
 	if loc.Name != "" {
