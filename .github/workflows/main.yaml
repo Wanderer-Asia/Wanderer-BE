@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "dev"
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: go get .
+      - 
+        name: unit test
+        run: go test ./...
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}:latest
+      -
+        name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_KEY }}
+          port: ${{ secrets.VM_PORT }}
+          script: |
+            docker stop ${{ secrets.CONTAINER_APP_NAME }}
+            docker rm ${{ secrets.CONTAINER_APP_NAME }}
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}
+            docker run --name ${{ secrets.CONTAINER_APP_NAME }} -d -p 80:${{ secrets.CONTAINER_APP_PORT }} -p 443:${{ secrets.CONTAINER_APP_PORT }} --link ${{ secrets.CONTAINER_DB_NAME }} -e DB_HOST=${{ secrets.ENV_DB_HOST }} -e DB_PORT=${{ secrets.ENV_DB_PORT }} -e DB_USERNAME=${{ secrets.ENV_DB_USER }} -e DB_PASSWORD=${{ secrets.ENV_DB_PASS }} -e DB_DATABASE=${{ secrets.ENV_DB_DATABASE }} -e CLOUDINARY_NAME=${{ secrets.ENV_CLOUDINARY_NAME }} -e CLOUDINARY_KEY=${{ secrets.ENV_CLOUDINARY_KEY }} -e CLOUDINARY_SECRET=${{ secrets.ENV_CLOUDINARY_SECRET }} -e JWT_SECRET=${{ secrets.ENV_JWT_SECRET }} -e MIDTRANS_KEY=${{ secrets.ENV_MIDTRANS_KEY }} -e MIDTRANS_SANDBOX=${{ secrets.MIDTRANS_SANDBOX }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_APP_IMAGE_NAME }}
+        
