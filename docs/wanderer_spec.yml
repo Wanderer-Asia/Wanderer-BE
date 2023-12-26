@@ -200,8 +200,6 @@ paths:
       tags:
         - Airline
       summary: "Download Airline Import Template"
-      security:
-        - JWT: []
       responses:
         "200":
           $ref: "#/components/responses/airlineImport_200"
@@ -342,8 +340,6 @@ paths:
       tags:
         - Location
       summary: "Download Location Import Template"
-      security:
-        - JWT: []
       responses:
         "200":
           $ref: "#/components/responses/locationImport_200"
@@ -468,8 +464,6 @@ paths:
       tags:
         - Facility
       summary: "Download Facility Import Template"
-      security:
-        - JWT: []
       responses:
         "200":
           $ref: "#/components/responses/facilityImport_200"
@@ -710,7 +704,7 @@ paths:
         "401":
           $ref: "#/components/responses/401"
         "404":
-          $ref: "#/components/responses/bookingExport_40
+          $ref: "#/components/responses/bookingExport_400"
         "405":
           $ref: "#/components/responses/405"
         "500":
