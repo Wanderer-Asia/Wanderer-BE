@@ -283,7 +283,7 @@ func (res *ExportFileTourResponse) FromEntity(ent bookings.Tour) {
 		res.Finish = &ent.Finish
 	}
 
-	diff := res.Start.Sub(*res.Finish)
+	diff := res.Finish.Sub(*res.Start)
 	days := int(diff.Hours() / 24)
 	res.Duration = days
 
