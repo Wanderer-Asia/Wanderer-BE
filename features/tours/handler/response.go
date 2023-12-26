@@ -17,15 +17,16 @@ type TourResponse struct {
 	Finish      *time.Time `json:"finish,omitempty"`
 	Quota       int        `json:"quota,omitempty"`
 	Available   int        `json:"available,omitempty"`
-	Rating      float32    `json:"rating,omitempty"`
+	Rating      float32    `json:"rating"`
 
 	Thumbnail string   `json:"thumbnail"`
 	Picture   []string `json:"picture,omitempty"`
 
 	Facility *struct {
-		Include []string `json:"include"`
-		Exclude []string `json:"exclude"`
-	} `json:"facility,omitempty"`
+		Include   []string `json:"include"`
+		IncludeId []uint   `json:"include_id"`
+		Exclude   []string `json:"exclude"`
+	} `json:"facility"`
 
 	Itinerary []ItineraryResponse `json:"itinerary,omitempty"`
 
@@ -74,12 +75,14 @@ func (res *TourResponse) FromEntity(ent tours.Tour, discountCurrency bool) {
 
 	if len(ent.FacilityInclude) != 0 || len(ent.FacilityExclude) != 0 {
 		res.Facility = &struct {
-			Include []string `json:"include"`
-			Exclude []string `json:"exclude"`
+			Include   []string `json:"include"`
+			IncludeId []uint   `json:"include_id"`
+			Exclude   []string `json:"exclude"`
 		}{}
 	}
 
 	for _, fac := range ent.FacilityInclude {
+		res.Facility.IncludeId = append(res.Facility.IncludeId, fac.Id)
 		res.Facility.Include = append(res.Facility.Include, fac.Name)
 	}
 
@@ -94,9 +97,9 @@ func (res *TourResponse) FromEntity(ent tours.Tour, discountCurrency bool) {
 		res.Itinerary = append(res.Itinerary, *tmpItinerary)
 	}
 
-	res.Location = LocationResponse{Name: ent.Location.Name}
+	res.Location = LocationResponse{Id: ent.Location.Id, Name: ent.Location.Name}
 	if !reflect.ValueOf(ent.Airline).IsZero() {
-		res.Airline = &AirlineResponse{Name: ent.Airline.Name}
+		res.Airline = &AirlineResponse{Id: ent.Airline.Id, Name: ent.Airline.Name}
 	}
 
 	for _, rev := range ent.Reviews {
@@ -118,10 +121,12 @@ func (res *ItineraryResponse) FromEntity(ent tours.Itinerary) {
 }
 
 type LocationResponse struct {
+	Id   uint   `json:"location_id"`
 	Name string `json:"name"`
 }
 
 type AirlineResponse struct {
+	Id   uint   `json:"airline_id"`
 	Name string `json:"name"`
 }
 

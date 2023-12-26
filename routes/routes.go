@@ -50,7 +50,9 @@ func (router *Routes) AirlineRouter() {
 	router.Server.POST("/airlines", router.AirlineHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.GET("/airlines", router.AirlineHandler.GetAll())
 	router.Server.PUT("/airlines/:id", router.AirlineHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
-	router.Server.DELETE("airlines/:id", router.AirlineHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.DELETE("/airlines/:id", router.AirlineHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/airlines/import", router.AirlineHandler.ImportTemplate(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.POST("/airlines/import", router.AirlineHandler.Import(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) LocationRouter() {
@@ -59,6 +61,8 @@ func (router *Routes) LocationRouter() {
 	router.Server.PUT("/locations/:id", router.LocationHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/locations/:id", router.LocationHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.GET("/locations/:id", router.LocationHandler.GetDetail())
+	router.Server.GET("/locations/import", router.LocationHandler.ImportTemplate(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.POST("/locations/import", router.LocationHandler.Import(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) FacilityRouter() {
@@ -66,6 +70,8 @@ func (router *Routes) FacilityRouter() {
 	router.Server.GET("/facilities", router.FacilityHandler.GetAll())
 	router.Server.PUT("/facilities/:id", router.FacilityHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.DELETE("/facilities/:id", router.FacilityHandler.Delete(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.GET("/facilities/import", router.FacilityHandler.ImportTemplate(), echojwt.JWT([]byte(router.JWTKey)))
+	router.Server.POST("/facilities/import", router.FacilityHandler.Import(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) TourRouter() {
@@ -84,8 +90,9 @@ func (router *Routes) BookingRouter() {
 	router.Server.POST("/bookings", router.BookingHandler.Create(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.GET("/bookings/:code", router.BookingHandler.GetDetail(), echojwt.JWT([]byte(router.JWTKey)))
 	router.Server.PATCH("/bookings/:code", router.BookingHandler.Update(), echojwt.JWT([]byte(router.JWTKey)))
-
 	router.Server.POST("/payments", router.BookingHandler.PaymentNotification())
+
+	router.Server.GET("/bookings/export", router.BookingHandler.ExportReportTransaction(), echojwt.JWT([]byte(router.JWTKey)))
 }
 
 func (router *Routes) ReportRouter() {

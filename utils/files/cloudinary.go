@@ -37,5 +37,5 @@ func (cloud *cloudinary) Upload(ctx context.Context, folder string, Raw io.Reade
 		return nil, err
 	}
 
-	return &res.URL, nil
+	return &res.SecureURL, nil
 }

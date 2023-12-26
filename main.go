@@ -108,7 +108,7 @@ func main() {
 
 	bookingRepository := br.NewBookingRepository(dbConnection, mdt)
 	bookingService := bs.NewBookingService(bookingRepository)
-	bookingHandler := bh.NewBookingHandler(bookingService, *jwtConfig)
+	bookingHandler := bh.NewBookingHandler(bookingService, *jwtConfig, cld)
 
 	reportRepository := rer.NewReportRepository(dbConnection)
 	reportService := res.NewReportService(reportRepository)

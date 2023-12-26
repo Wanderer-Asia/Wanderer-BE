@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	facilities "wanderer/features/facilities"
 	filters "wanderer/helpers/filters"
 
@@ -66,6 +67,20 @@ func (_m *Repository) GetAll(flt filters.Filter) ([]facilities.Facility, error) 
 	}
 
 	return r0, r1
+}
+
+// Import provides a mock function with given fields: ctx, data
+func (_m *Repository) Import(ctx context.Context, data []facilities.Facility) error {
+	ret := _m.Called(ctx, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []facilities.Facility) error); ok {
+		r0 = rf(ctx, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Update provides a mock function with given fields: id, updateFacility

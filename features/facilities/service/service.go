@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"wanderer/features/facilities"
 	"wanderer/helpers/filters"
@@ -59,6 +60,14 @@ func (srv *facilityService) Delete(id uint) error {
 	}
 
 	if err := srv.repo.Delete(id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (srv *facilityService) Import(ctx context.Context, data []facilities.Facility) error {
+	if err := srv.repo.Import(ctx, data); err != nil {
 		return err
 	}
 

@@ -710,7 +710,7 @@ paths:
         "401":
           $ref: "#/components/responses/401"
         "404":
-          $ref: "#/components/responses/bookingExport_404"
+          $ref: "#/components/responses/bookingExport_40
         "405":
           $ref: "#/components/responses/405"
         "500":

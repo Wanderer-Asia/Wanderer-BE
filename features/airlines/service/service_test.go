@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"wanderer/features/airlines"
@@ -185,6 +186,44 @@ func TestAirlineServiceDelete(t *testing.T) {
 
 		err := srv.Delete(1)
 		assert.Nil(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestAirlineServiceImport(t *testing.T) {
+	var repo = mocks.NewRepository(t)
+	var srv = service.NewAirlineService(repo)
+	var ctx = context.Background()
+	var caseData = []airlines.Airline{
+		{
+			Id:       1,
+			Name:     "Test Air",
+			ImageUrl: "test",
+		},
+		{
+			Id:       2,
+			Name:     "Cek Air",
+			ImageUrl: "test",
+		},
+	}
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("Import", ctx, caseData).Return(errors.New("some error from repository")).Once()
+
+		err := srv.Import(ctx, caseData)
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		repo.On("Import", ctx, caseData).Return(nil).Once()
+
+		err := srv.Import(ctx, caseData)
+
+		assert.NoError(t, err)
 
 		repo.AssertExpectations(t)
 	})

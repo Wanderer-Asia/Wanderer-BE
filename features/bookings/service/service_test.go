@@ -394,3 +394,54 @@ func TestBookingServiceUpdate(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 }
+
+func TestBookingServiceExport(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+	t.Run("Error from repository", func(t *testing.T) {
+		repo.On("Export", ctx).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.Export(ctx)
+
+		assert.ErrorContains(t, err, "some error from repository")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+	t.Run("Succes Case", func(t *testing.T) {
+		data := []bookings.Booking{
+			{
+				Code:   123,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+			{
+				Code:   234,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+		}
+
+		repo.On("Export", ctx).Return(data, nil).Once()
+
+		result, err := srv.Export(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, data, result)
+
+		repo.AssertExpectations(t)
+	})
+}
