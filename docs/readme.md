@@ -11,7 +11,7 @@
 Wanderer API is a RESTful API designed for booking travel packages with features for reservation and payment. Additionally, it includes an admin panel for efficient content management within the system.
 
 ## 🌐 Deployment
- - link vercel
+ - [VERCEL](https://wanderer-delta.vercel.app/)
 
 ## 🖼 Prototype
 - [FIGMA](https://www.figma.com/file/QjFROWypWKpnjN3AZgYpWS/Wanderer-App?type=design&node-id=0-1&mode=design&t=96eQ9N3axnjnLPgv-0)

@@ -695,7 +695,26 @@ paths:
           $ref: "#/components/responses/405"
         "500":
           $ref: "#/components/responses/500"
-
+  /bookings/export:
+    get:
+      tags:
+        - Booking
+      summary: "Export Transaction List"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingExport"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingExport_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/bookingExport_40
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
   /reports:
     get:
       tags:
@@ -2223,6 +2242,44 @@ components:
             "booking not found":
               value:
                 message: "booking not found"
+    "bookingExport_200":
+      description: "export transaction list success"
+      content:
+        text/csv:
+          schema:
+            type: string
+            format: binary
+        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+          schema:
+            type: string
+            format: binary
+        application/pdf:
+          schema:
+            type: string
+            format: binary
+    "bookingExport_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+    "bookingExport_404":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "transaction list not found":
+              value:
+                message: "transaction list not found"
 
     "reportGet_200":
       description: "get report success"
@@ -2482,6 +2539,15 @@ components:
       schema:
         type: integer
         example: 0
+    bookingExport:
+      name: "type"
+      description: "export file type"
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 
+          excel
     
   requestBodies:
     login:
