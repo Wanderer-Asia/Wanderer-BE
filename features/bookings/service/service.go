@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 	"wanderer/features/bookings"
 	"wanderer/helpers/filters"
 )
@@ -86,12 +87,88 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 	return result, nil
 }
 
-func (srv *bookingService) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
+func (srv *bookingService) UpdateBookingStatus(ctx context.Context, code int, status string) error {
+	if code == 0 {
+		return errors.New("validate: invalid booking code")
+	}
+
+	oldData, err := srv.repo.GetDetail(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	switch status {
+	case "cancel":
+		if oldData.Status != "pending" {
+			return errors.New("unprocessable: booking can't canceled")
+		}
+	case "refund":
+		if oldData.Status != "approved" {
+			return errors.New("unprocessable: refund request denied")
+		}
+	case "refunded":
+		if oldData.Status != "refund" {
+			return errors.New("unprocessable: can't approve refund without refund request")
+		}
+	default:
+		return errors.New("validate: invalid booking status")
+	}
+
+	if err := srv.repo.UpdateBookingStatus(ctx, code, status); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (srv *bookingService) UpdatePaymentStatus(ctx context.Context, code int, paymentStatus string) error {
+	if code == 0 {
+		return errors.New("validate: invalid booking code")
+	}
+
+	var bookingStatus = "pending"
+	switch paymentStatus {
+	case "settlement":
+		bookingStatus = "approved"
+	case "cancel", "expire":
+		bookingStatus = "cancel"
+	case "capture", "deny", "pending":
+		bookingStatus = "pending"
+	default:
+		return errors.New("validate: invalid payment status")
+	}
+
+	if err := srv.repo.UpdatePaymentStatus(ctx, code, bookingStatus, paymentStatus); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (srv *bookingService) ChangePaymentMethod(ctx context.Context, code int, data bookings.Payment) (*bookings.Payment, error) {
 	if code == 0 {
 		return nil, errors.New("validate: invalid booking code")
 	}
 
-	result, err := srv.repo.Update(ctx, code, data)
+	if data.Bank == "" {
+		return nil, errors.New("validate: payment method can't be empty")
+	}
+
+	oldData, err := srv.repo.GetDetail(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+
+	if oldData.Status != "pending" || oldData.Payment.Status != "pending" {
+		return nil, errors.New("unprocessable: can't change payment method")
+	}
+
+	if data.Bank == oldData.Payment.Bank && oldData.Payment.ExpiredAt.After(time.Now()) {
+		return &oldData.Payment, nil
+	}
+
+	oldData.Payment = data
+	result, err := srv.repo.ChangePaymentMethod(ctx, code, *oldData)
 	if err != nil {
 		return nil, err
 	}
