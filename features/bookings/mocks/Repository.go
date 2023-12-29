@@ -179,6 +179,32 @@ func (_m *Repository) GetTourById(ctx context.Context, tourId uint) (*bookings.T
 	return r0, r1
 }
 
+// GetUserById provides a mock function with given fields: ctx, userId
+func (_m *Repository) GetUserById(ctx context.Context, userId uint) (*bookings.User, error) {
+	ret := _m.Called(ctx, userId)
+
+	var r0 *bookings.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*bookings.User, error)); ok {
+		return rf(ctx, userId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *bookings.User); ok {
+		r0 = rf(ctx, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*bookings.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateBookingStatus provides a mock function with given fields: ctx, code, status
 func (_m *Repository) UpdateBookingStatus(ctx context.Context, code int, status string) error {
 	ret := _m.Called(ctx, code, status)
