@@ -59,6 +59,21 @@ func (hdl *reviewHandler) Create() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
+			if strings.Contains(err.Error(), "started") {
+				response["message"] = strings.ReplaceAll(err.Error(), "cannot create review: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "finished") {
+				response["message"] = strings.ReplaceAll(err.Error(), "cannot create review: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "booked") {
+				response["message"] = strings.ReplaceAll(err.Error(), "cannot create review: ", "")
+				return c.JSON(http.StatusBadRequest, response)
+			}
+
 			if strings.Contains(err.Error(), "used: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "used: ", "")
 				return c.JSON(http.StatusConflict, response)

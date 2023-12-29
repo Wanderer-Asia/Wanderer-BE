@@ -23,12 +23,28 @@ type User struct {
 	Image string
 }
 
+type Tour struct {
+	Id     uint
+	Finish time.Time
+	Start  time.Time
+}
+
+type Booking struct {
+	Code   int
+	UserId uint
+	TourId uint
+	Status string
+}
+
 type Handler interface {
 	Create() echo.HandlerFunc
 }
 
 type Repository interface {
 	Create(userId uint, newReview Review) error
+	GetTourById(tourId uint) (*Tour, error)
+	IsBooking(tourId uint, userId uint) bool
+	IsApproved(tourId uint, userId uint) bool
 }
 
 type Service interface {

@@ -27,6 +27,60 @@ func (_m *Repository) Create(userId uint, newReview reviews.Review) error {
 	return r0
 }
 
+// GetTourById provides a mock function with given fields: tourId
+func (_m *Repository) GetTourById(tourId uint) (*reviews.Tour, error) {
+	ret := _m.Called(tourId)
+
+	var r0 *reviews.Tour
+	var r1 error
+	if rf, ok := ret.Get(0).(func(uint) (*reviews.Tour, error)); ok {
+		return rf(tourId)
+	}
+	if rf, ok := ret.Get(0).(func(uint) *reviews.Tour); ok {
+		r0 = rf(tourId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*reviews.Tour)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(tourId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsApproved provides a mock function with given fields: tourId, userId
+func (_m *Repository) IsApproved(tourId uint, userId uint) bool {
+	ret := _m.Called(tourId, userId)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(uint, uint) bool); ok {
+		r0 = rf(tourId, userId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// IsBooking provides a mock function with given fields: tourId, userId
+func (_m *Repository) IsBooking(tourId uint, userId uint) bool {
+	ret := _m.Called(tourId, userId)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(uint, uint) bool); ok {
+		r0 = rf(tourId, userId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {
