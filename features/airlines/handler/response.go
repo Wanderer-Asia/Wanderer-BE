@@ -20,6 +20,6 @@ func (res *GetAllResponse) FromEntity(ent airlines.Airline) {
 	if ent.ImageUrl != "" {
 		res.Image = ent.ImageUrl
 	} else {
-		res.Image = "default"
+		res.Image = "https://res.cloudinary.com/dhxzinjxp/image/upload/v1703490540/asset-default/plane_mefauw.png"
 	}
 }

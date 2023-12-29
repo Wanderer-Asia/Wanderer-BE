@@ -2,32 +2,37 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"wanderer/config"
 	"wanderer/features/tours"
 	"wanderer/helpers/filters"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-func NewTourHandler(tourService tours.Service) tours.Handler {
+func NewTourHandler(tourService tours.Service, jwtConfig config.JWT) tours.Handler {
 	return &tourHandler{
 		tourService: tourService,
+		jwtConfig:   jwtConfig,
 	}
 }
 
 type tourHandler struct {
 	tourService tours.Service
+	jwtConfig   config.JWT
 }
 
 func (hdl *tourHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var response = make(map[string]any)
+		var baseUrl = c.Scheme() + "://" + c.Request().Host
 
 		var pagination = new(filters.Pagination)
 		c.Bind(pagination)
-		if pagination.Limit == 0 {
+		if pagination.Start != 0 && pagination.Limit == 0 {
 			pagination.Limit = 5
 		}
 
@@ -45,16 +50,62 @@ func (hdl *tourHandler) GetAll() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		response["totalData"] = totalData
-
 		var data []TourResponse
 		for _, tour := range result {
 			var tmpTour = new(TourResponse)
-			tmpTour.FromEntity(tour)
+			tmpTour.FromEntity(tour, false)
 
 			data = append(data, *tmpTour)
 		}
 		response["data"] = data
+
+		if pagination.Limit != 0 {
+			var paginationResponse = make(map[string]any)
+			if pagination.Start >= (pagination.Limit) {
+				prev := fmt.Sprintf("%s%s?start=%d&limit=%d", baseUrl, c.Path(), pagination.Start-pagination.Limit, pagination.Limit)
+
+				if search.Keyword != "" {
+					prev += "&keyword=" + search.Keyword
+				}
+
+				if sort.Column != "" {
+					prev += "&sort=" + sort.Column
+				}
+
+				if sort.Direction {
+					prev += "&dir=true"
+				} else {
+					prev += "&dir=false"
+				}
+
+				paginationResponse["prev"] = prev
+			} else {
+				paginationResponse["prev"] = nil
+			}
+
+			if totalData > pagination.Start+pagination.Limit {
+				next := fmt.Sprintf("%s%s?start=%d&limit=%d", baseUrl, c.Path(), pagination.Start+pagination.Limit, pagination.Limit)
+
+				if search.Keyword != "" {
+					next += "&keyword=" + search.Keyword
+				}
+
+				if sort.Column != "" {
+					next += "&sort=" + sort.Column
+				}
+
+				if sort.Direction {
+					next += "&dir=true"
+				} else {
+					next += "&dir=false"
+				}
+
+				paginationResponse["next"] = next
+			} else {
+				paginationResponse["next"] = nil
+			}
+			response["pagination"] = paginationResponse
+		}
 
 		response["message"] = "get all tour success"
 		return c.JSON(http.StatusOK, response)
@@ -82,8 +133,8 @@ func (hdl *tourHandler) GetDetail() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response)
 			}
 
-			if strings.Contains(err.Error(), "not found") {
-				response["message"] = "tour not found"
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
 				return c.JSON(http.StatusNotFound, response)
 			}
 
@@ -93,7 +144,7 @@ func (hdl *tourHandler) GetDetail() echo.HandlerFunc {
 
 		var data = new(TourResponse)
 		if result != nil {
-			data.FromEntity(*result)
+			data.FromEntity(*result, true)
 		}
 
 		response["message"] = "get detail tour success"
@@ -120,6 +171,11 @@ func (hdl *tourHandler) Create() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
+				return c.JSON(http.StatusNotFound, response)
 			}
 
 			response["message"] = "internal server error"
@@ -160,6 +216,11 @@ func (hdl *tourHandler) Update() echo.HandlerFunc {
 			if strings.Contains(err.Error(), "validate: ") {
 				response["message"] = strings.ReplaceAll(err.Error(), "validate: ", "")
 				return c.JSON(http.StatusBadRequest, response)
+			}
+
+			if strings.Contains(err.Error(), "not found: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "not found: ", "")
+				return c.JSON(http.StatusNotFound, response)
 			}
 
 			response["message"] = "internal server error"

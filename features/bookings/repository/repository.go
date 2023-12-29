@@ -41,6 +41,8 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 
 	qry := repo.mysqlDB.WithContext(ctx).Model(&Booking{})
 
+	qry.Count(&totalData)
+
 	if flt.Pagination.Limit != 0 {
 		qry = qry.Limit(flt.Pagination.Limit)
 	}
@@ -48,8 +50,6 @@ func (repo *bookingRepository) GetAll(ctx context.Context, flt filters.Filter) (
 	if flt.Pagination.Start != 0 {
 		qry = qry.Offset(flt.Pagination.Start)
 	}
-
-	qry.Count(&totalData)
 
 	if err := qry.Joins("User").Joins("Tour", repo.mysqlDB.Select("title", "start", "finish").Model(&Tour{})).Find(&mod).Error; err != nil {
 		return nil, int(totalData), err
@@ -126,6 +126,19 @@ func (repo *bookingRepository) GetDetail(ctx context.Context, code int) (*bookin
 	return data, nil
 }
 
+func (repo *bookingRepository) GetTourById(ctx context.Context, tourId uint) (*bookings.Tour, error) {
+	var mod = new(Tour)
+
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Tour{Id: tourId}).First(mod).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: tour not found")
+		}
+		return nil, err
+	}
+
+	return mod.ToEntity(nil), nil
+}
+
 func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking) (*bookings.Booking, error) {
 	var modBooking = new(Booking)
 	modBooking.FromEntity(data)
@@ -166,7 +179,6 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 		return nil, err
 	}
 
-	modBooking.Code = 0
 	modBooking.User = User{}
 	modBooking.Tour = Tour{}
 	modBooking.Status = ""
@@ -175,24 +187,7 @@ func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking
 	return modBooking.ToEntity(), nil
 }
 
-func (repo *bookingRepository) Update(ctx context.Context, code int, data bookings.Booking) (*bookings.Booking, error) {
-	var modNewBooking = new(Booking)
-	modNewBooking.FromEntity(data)
-
-	var modOldBooking = new(Booking)
-	if err := repo.mysqlDB.WithContext(ctx).Where(&Booking{Code: code}).Joins("User").First(modOldBooking).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("not found: booking not found")
-		}
-		return nil, err
-	}
-
-	var modOldBookingDetail []BookingDetail
-	if err := repo.mysqlDB.WithContext(ctx).Where(&BookingDetail{BookingCode: code}).Find(&modOldBookingDetail).Error; err != nil {
-		return nil, err
-	}
-	modOldBooking.Detail = modOldBookingDetail
-
+func (repo *bookingRepository) UpdateBookingStatus(ctx context.Context, code int, status string) error {
 	tx := repo.mysqlDB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -200,77 +195,103 @@ func (repo *bookingRepository) Update(ctx context.Context, code int, data bookin
 		}
 	}()
 
-	if modNewBooking.Payment.Bank != "" {
+	if status == "refunded" {
 		err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
-			if err := repo.payment.CancelBookingPayment(code); err != nil {
-				return err
-			}
-
-			var retries = 2
-			var complete = false
-
-			for retries <= 2 || complete {
-				modOldBooking.Payment = modNewBooking.Payment
-				res, err := repo.payment.NewBookingPayment(*modOldBooking.ToEntity())
-				if err != nil && retries < 2 {
-					time.Sleep(50)
-					retries++
-
-					continue
-				} else if err != nil {
-					return err
-				} else {
-					var modPayment = new(Payment)
-					modPayment.FromEntity(*res)
-					data.Payment = *res
-					data.Total = modOldBooking.Total
-					modNewBooking.Payment = *modPayment
-					return nil
-				}
-			}
-
-			return nil
+			return txTour.WithContext(ctx).
+				Model(&Tour{}).
+				Where("id = (SELECT tour_id FROM bookings where code = ? AND status = 'refund')", code).
+				Update("available", gorm.Expr("available + (SELECT COUNT(id) FROM booking_details where booking_code = ?)", code)).Error
 		})
 		if err != nil {
 			tx.Rollback()
-			return nil, err
+			return err
 		}
 	}
 
-	if modNewBooking.Status != "" {
-		switch modNewBooking.Status {
-		case "refunded":
-			err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
-				return txTour.WithContext(ctx).Model(&Tour{}).Where(&Tour{Id: modOldBooking.TourId}).Update("available", gorm.Expr("available + ?", len(modOldBooking.Detail))).Error
-			})
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-		case "approved":
-			err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
-				return txTour.WithContext(ctx).Model(&Tour{}).Where(&Tour{Id: modOldBooking.TourId}).Update("available", gorm.Expr("available - ?", len(modOldBooking.Detail))).Error
-			})
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
+	if status == "cancel" {
+		repo.payment.CancelBookingPayment(code)
+	}
+
+	err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+		return txTour.WithContext(ctx).Where("code = ?", code).Updates(&Booking{Status: status}).Error
+	})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.WithContext(ctx).Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *bookingRepository) UpdatePaymentStatus(ctx context.Context, code int, bookingStatus string, paymentStatus string) error {
+	tx := repo.mysqlDB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if bookingStatus == "approved" {
+		err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
+			return txTour.WithContext(ctx).
+				Model(&Tour{}).
+				Where("id = (SELECT tour_id FROM bookings where code = ? AND status = 'pending')", code).
+				Update("available", gorm.Expr("available - (SELECT COUNT(id) FROM booking_details where booking_code = ?)", code)).Error
+		})
+		if err != nil {
+			tx.Rollback()
+			return err
 		}
 	}
 
 	err := tx.WithContext(ctx).Transaction(func(txTour *gorm.DB) error {
-		return txTour.WithContext(ctx).Omit("Detail").Where(&Booking{Code: code}).Updates(modNewBooking).Error
+		return txTour.WithContext(ctx).Where("code = ?", code).Updates(&Booking{Status: bookingStatus, Payment: Payment{Status: paymentStatus}}).Error
 	})
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
 	if err := tx.WithContext(ctx).Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *bookingRepository) ChangePaymentMethod(ctx context.Context, code int, data bookings.Booking) (*bookings.Payment, error) {
+	var newPayment = new(bookings.Payment)
+	var retries = 2
+	var complete = false
+
+	repo.payment.CancelBookingPayment(code)
+	for retries <= 2 || complete {
+		res, err := repo.payment.NewBookingPayment(data)
+		if err == nil {
+			newPayment = res
+
+			break
+		} else if retries < 2 {
+			time.Sleep(50)
+			retries++
+
+			continue
+		}
+
 		return nil, err
 	}
 
-	return &data, nil
+	var modPayment = new(Payment)
+	modPayment.FromEntity(*newPayment)
+	if err := repo.mysqlDB.WithContext(ctx).Where(Booking{Code: code}).Updates(&Booking{Payment: *modPayment}).Error; err != nil {
+		return nil, err
+	}
+
+	return newPayment, nil
 }
 
 func (repo *bookingRepository) Export() ([]bookings.Booking, error) {
@@ -289,7 +310,6 @@ func (repo *bookingRepository) Export() ([]bookings.Booking, error) {
 	}
 
 	return data, nil
-
 }
 
 func (repo *bookingRepository) ExportFileCsv(c echo.Context, data []bookings.Booking) error {

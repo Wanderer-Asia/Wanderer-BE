@@ -1,16 +1,14 @@
 package repository
 
 import (
-	"reflect"
 	"time"
 	"wanderer/features/reviews"
-	ur "wanderer/features/users/repository"
 )
 
 type Review struct {
 	Id     uint    `gorm:"column:id; primaryKey;"`
 	UserId uint    `gorm:"column:user_id;"`
-	User   ur.User `gorm:"foreignkey:UserId;"`
+	User   User    `gorm:"foreignkey:UserId;"`
 	TourId uint    `gorm:"column:tour_id;"`
 	Text   string  `gorm:"column:text; type:text;"`
 	Rating float32 `gorm:"column:rating; type:float(8,2);"`
@@ -47,10 +45,6 @@ func (mod *Review) ToEntity() *reviews.Review {
 		ent.User.Id = mod.UserId
 	}
 
-	if !reflect.ValueOf(mod.User).IsZero() {
-		ent.User = *mod.User.ToEntity()
-	}
-
 	if mod.TourId != 0 {
 		ent.TourId = mod.TourId
 	}
@@ -68,4 +62,21 @@ func (mod *Review) ToEntity() *reviews.Review {
 	}
 
 	return ent
+}
+
+type User struct {
+	Id uint
+}
+
+type Tour struct {
+	Id     uint
+	Finish time.Time
+	Start  time.Time
+}
+
+type Booking struct {
+	Code   int
+	UserId uint
+	TourId uint
+	Status string
 }

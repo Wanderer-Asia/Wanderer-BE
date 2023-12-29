@@ -58,7 +58,9 @@ func (mod *Location) FromEntity(ent locations.Location) {
 		mod.Name = ent.Name
 	}
 
-	if ent.ImageRaw != nil {
+	if ent.ImageUrl != "" {
+		mod.ImageUrl = ent.ImageUrl
+	} else if ent.ImageRaw != nil {
 		mod.ImageRaw = ent.ImageRaw
 	}
 

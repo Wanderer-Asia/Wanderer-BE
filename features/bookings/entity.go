@@ -46,7 +46,8 @@ type Payment struct {
 	BillCode      string
 	Status        string
 
-	BookingCode int
+	BookingCode  int
+	BookingTotal float64
 
 	CreatedAt time.Time
 	ExpiredAt time.Time
@@ -71,7 +72,7 @@ type Tour struct {
 	Finish      time.Time
 	Quota       int
 	Available   int
-	Rating      float32
+	Rating      *float32
 
 	Picture []File
 
@@ -137,15 +138,20 @@ type Service interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
-	Update(ctx context.Context, code int, data Booking) (*Booking, error)
+	UpdateBookingStatus(ctx context.Context, code int, status string) error
+	UpdatePaymentStatus(ctx context.Context, code int, paymentStatus string) error
+	ChangePaymentMethod(ctx context.Context, code int, data Payment) (*Payment, error)
 	Export(c echo.Context, typeFile string) error
 }
 
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
+	GetTourById(ctx context.Context, tourId uint) (*Tour, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
-	Update(ctx context.Context, code int, data Booking) (*Booking, error)
+	UpdateBookingStatus(ctx context.Context, code int, status string) error
+	UpdatePaymentStatus(ctx context.Context, code int, bookingStatus string, paymentStatus string) error
+	ChangePaymentMethod(ctx context.Context, code int, data Booking) (*Payment, error)
 	Export() ([]Booking, error)
 	ExportFileCsv(c echo.Context, data []Booking) error
 	ExportFileExcel(c echo.Context, data []Booking) error

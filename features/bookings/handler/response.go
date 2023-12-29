@@ -82,7 +82,7 @@ type TourResponse struct {
 	Price       float64    `json:"price,omitempty"`
 	Start       *time.Time `json:"start,omitempty"`
 	Finish      *time.Time `json:"finish,omitempty"`
-	Rating      float32    `json:"rating,omitempty"`
+	Rating      *float32   `json:"rating,omitempty"`
 
 	Picture []string `json:"picture,omitempty"`
 
@@ -121,7 +121,7 @@ func (res *TourResponse) FromEntity(ent bookings.Tour) {
 		res.Finish = &ent.Finish
 	}
 
-	if ent.Rating != 0 {
+	if ent.Rating != nil {
 		res.Rating = ent.Rating
 	}
 
@@ -196,11 +196,16 @@ func (res *ReviewResponse) FromEntity(ent bookings.Review) {
 }
 
 type UserResponse struct {
+	Id    uint   `json:"user_id,omitempty"`
 	Name  string `json:"fullname,omitempty"`
 	Image string `json:"image,omitempty"`
 }
 
 func (res *UserResponse) FromEntity(ent bookings.User) {
+	if ent.Id != 0 {
+		res.Id = ent.Id
+	}
+
 	if ent.Name != "" {
 		res.Name = ent.Name
 	}

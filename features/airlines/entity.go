@@ -1,6 +1,7 @@
 package airlines
 
 import (
+	"context"
 	"io"
 	"time"
 	"wanderer/helpers/filters"
@@ -24,6 +25,8 @@ type Handler interface {
 	GetAll() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	ImportTemplate() echo.HandlerFunc
+	Import() echo.HandlerFunc
 }
 
 type Service interface {
@@ -31,6 +34,7 @@ type Service interface {
 	GetAll(flt filters.Filter) ([]Airline, error)
 	Update(id uint, updateAirline Airline) error
 	Delete(id uint) error
+	Import(ctx context.Context, data []Airline) error
 }
 
 type Repository interface {
@@ -38,4 +42,5 @@ type Repository interface {
 	GetAll(flt filters.Filter) ([]Airline, error)
 	Update(id uint, updateAirline Airline) error
 	Delete(id uint) error
+	Import(ctx context.Context, data []Airline) error
 }

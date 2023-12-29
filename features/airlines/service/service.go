@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"wanderer/features/airlines"
 	"wanderer/helpers/filters"
@@ -59,6 +60,14 @@ func (srv *airlineService) Delete(id uint) error {
 	}
 
 	if err := srv.repo.Delete(id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (srv *airlineService) Import(ctx context.Context, data []airlines.Airline) error {
+	if err := srv.repo.Import(ctx, data); err != nil {
 		return err
 	}
 

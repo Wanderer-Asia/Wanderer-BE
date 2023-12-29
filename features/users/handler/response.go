@@ -12,11 +12,10 @@ type UserResponse struct {
 	Email string `json:"email,omitempty"`
 	Image string `json:"image,omitempty"`
 	Role  string `json:"role,omitempty"`
-	Token string `json:"token,omitempty"`
 
-	TourCount   int               `json:"tour_count,omitempty"`
-	ReviewCount int               `json:"review_count,omitempty"`
-	Bookings    []BookingResponse `json:"bookings,omitempty"`
+	TourCount   int               `json:"tour_count"`
+	ReviewCount int               `json:"review_count"`
+	Bookings    []BookingResponse `json:"bookings"`
 }
 
 func (res *UserResponse) FromEntity(ent users.User) {
@@ -38,6 +37,14 @@ func (res *UserResponse) FromEntity(ent users.User) {
 		res.Role = ent.Role
 	}
 
+	if ent.Email != "" {
+		res.Email = ent.Email
+	}
+
+	if ent.Phone != "" {
+		res.Phone = ent.Phone
+	}
+
 	if ent.TourCount != 0 {
 		res.TourCount = ent.TourCount
 	}
@@ -55,7 +62,7 @@ func (res *UserResponse) FromEntity(ent users.User) {
 }
 
 type BookingResponse struct {
-	Code        int          `json:"code,omitempty"`
+	Code        int          `json:"booking_code,omitempty"`
 	Status      string       `json:"status,omitempty"`
 	DetailCount int          `json:"detail_count,omitempty"`
 	Tour        TourResponse `json:"tour,omitempty"`
@@ -80,7 +87,7 @@ func (res *BookingResponse) FromEntity(ent users.Booking) {
 }
 
 type TourResponse struct {
-	Id    uint   `json:"id,omitempty"`
+	Id    uint   `json:"tour_id,omitempty"`
 	Title string `json:"title,omitempty"`
 }
 
@@ -114,7 +121,7 @@ func (res *LoginResponse) FromEntity(ent users.User) {
 	if ent.ImageUrl != "" {
 		res.Image = ent.ImageUrl
 	} else {
-		res.Image = "default"
+		res.Image = "https://res.cloudinary.com/dhxzinjxp/image/upload/v1703490558/asset-default/user_d5pwxw.png"
 	}
 
 	if ent.Role != "" {

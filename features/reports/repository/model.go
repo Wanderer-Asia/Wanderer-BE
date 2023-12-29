@@ -36,7 +36,8 @@ func (mod *Booking) ToEntity() *reports.Booking {
 }
 
 type User struct {
-	Id uint
+	Id   uint
+	Role string
 }
 
 type Tour struct {

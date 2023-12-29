@@ -1,0 +1,2956 @@
+openapi: 3.0.0
+info:
+  description: "Ini adalah API spec untuk sistem Wanderer"
+  version: "1.0.0"
+  title: "Wanderer"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: galihp83@gmail.com
+servers:
+  - description: "SwaggerHub API Auto Mocking"
+    url: https://virtserver.swaggerhub.com/GALIHP83/Wanderer/1.0.0
+  - description: "Development Server"
+    url: https://api.wanderer.asia
+
+paths:
+  /login:
+    post:
+      tags:
+        - Auth
+      summary: "Login"
+      requestBody:
+        $ref: "#/components/requestBodies/login"
+      responses:
+        "200":
+          $ref: "#/components/responses/login_200"
+        "400":
+          $ref: "#/components/responses/login_400"
+        "404":
+          $ref: "#/components/responses/login_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  /register:
+    post:
+      tags:
+        - Auth
+      summary: "Register"
+      requestBody:
+        $ref: "#/components/requestBodies/register"
+      responses:
+        "201":
+          $ref: "#/components/responses/register_201"
+        "400":
+          $ref: "#/components/responses/register_400"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/register_409"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /users:
+    get:
+      tags:
+        - "User"
+      summary: "Profile User"
+      security:
+        - JWT: []
+      responses:
+        "200":
+          $ref: "#/components/responses/userProfile_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    patch:
+      tags:
+        - "User"
+      summary: "Update User"
+      requestBody:
+        $ref: "#/components/requestBodies/updateUser"
+      security:
+        - JWT: []
+      responses:
+        "200":
+          $ref: "#/components/responses/userUpdate_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/userUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/userUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+    delete:
+      tags:
+        - "User"
+      summary: "Delete User"
+      security:
+        - JWT: []
+      responses:
+        "200":
+          $ref: "#/components/responses/userDelete_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/userUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /airlines:
+    get:
+      tags:
+        - Airline
+      summary: "Get All Airline"
+      parameters:
+        - $ref: "#/components/parameters/airlineSearch" 
+      responses:
+        "200":
+          $ref: "#/components/responses/airlineGetAll_200"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Airline
+      summary: "Create Airline"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createUpdateAirline"
+      responses:
+        "201":
+          $ref: "#/components/responses/airlineCreate_201"
+        "400":
+          $ref: "#/components/responses/airlineCreateUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/airlineCreateUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /airlines/{id}:
+    put:
+      tags:
+        - Airline
+      summary: "Update Airline"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/airlineId"
+      requestBody:
+        $ref: "#/components/requestBodies/createUpdateAirline"
+      responses:
+        "200":
+          $ref: "#/components/responses/airlineUpdate_200"
+        "400":
+          $ref: "#/components/responses/airlineCreateUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/airlineUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/airlineCreateUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+    delete:
+      tags:
+        - Airline
+      summary: "Delete Airline"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/airlineId"
+      responses:
+        "200":
+          $ref: "#/components/responses/airlineDelete_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/airlineUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/airlineDelete_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /airlines/import:
+    get:
+      tags:
+        - Airline
+      summary: "Download Airline Import Template"
+      responses:
+        "200":
+          $ref: "#/components/responses/airlineImport_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Airline
+      summary: "Import Airline"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/importAirline"
+      responses:
+        "201":
+          $ref: "#/components/responses/airlineImport_201"
+        "400":
+          $ref: "#/components/responses/airlineImport_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  
+  /locations:
+    get:
+      tags:
+        - Location
+      summary: "Get All Location"
+      parameters:
+        - $ref: "#/components/parameters/locationSearch" 
+        - $ref: "#/components/parameters/locationLimit" 
+      responses:
+        "200":
+          $ref: "#/components/responses/locationGetAll_200"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Location
+      summary: "Create Location"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createLocation"
+      responses:
+        "201":
+          $ref: "#/components/responses/locationCreate_201"
+        "400":
+          $ref: "#/components/responses/locationCreate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/locationCreateUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /locations/{id}:
+    get:
+      tags:
+        - Location
+      summary: "Get Detail Location"
+      parameters:
+        - $ref: "#/components/parameters/locationId"
+      responses:
+        "200":
+          $ref: "#/components/responses/locationGetDetail_200"
+        "404":
+          $ref: "#/components/responses/locationGetDetailUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    put:
+      tags:
+        - Location
+      summary: "Update Location"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/locationId"
+      requestBody:
+        $ref: "#/components/requestBodies/updateLocation"
+      responses:
+        "200":
+          $ref: "#/components/responses/locationUpdate_200"
+        "400":
+          $ref: "#/components/responses/locationUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/locationGetDetailUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/locationCreateUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+    delete:
+      tags:
+        - Location
+      summary: "Delete Location"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/locationId"
+      responses:
+        "200":
+          $ref: "#/components/responses/locationDelete_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/locationGetDetailUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/locationDelete_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /locations/import:
+    get:
+      tags:
+        - Location
+      summary: "Download Location Import Template"
+      responses:
+        "200":
+          $ref: "#/components/responses/locationImport_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Location
+      summary: "Import Location"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/importLocation"
+      responses:
+        "201":
+          $ref: "#/components/responses/locationImport_201"
+        "400":
+          $ref: "#/components/responses/locationImport_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  
+  /facilities:
+    get:
+      tags:
+        - Facility
+      summary: "Get All Facility"
+      parameters:
+        - $ref: "#/components/parameters/facilitySearch" 
+      responses:
+        "200":
+          $ref: "#/components/responses/facilityGetAll_200"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Facility
+      summary: "Create Facility"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createUpdateFacility"
+      responses:
+        "201":
+          $ref: "#/components/responses/facilityCreate_201"
+        "400":
+          $ref: "#/components/responses/facilityCreateUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/facilityCreateUpdate_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /facilities/{id}:
+    put:
+      tags:
+        - Facility
+      summary: "Update Facility"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/facilityId"
+      requestBody:
+        $ref: "#/components/requestBodies/createUpdateFacility"
+      responses:
+        "200":
+          $ref: "#/components/responses/facilityUpdate_200"
+        "400":
+          $ref: "#/components/responses/facilityCreateUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/facilityUpdateDelete_404"
+        "409":
+          $ref: "#/components/responses/facilityCreateUpdate_409"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    delete:
+      tags:
+        - Facility
+      summary: "Delete Facility"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/facilityId"
+      responses:
+        "200":
+          $ref: "#/components/responses/facilityDelete_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/facilityUpdateDelete_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/facilityDelete_409"
+        "500":
+          $ref: "#/components/responses/500"
+  /facilities/import:
+    get:
+      tags:
+        - Facility
+      summary: "Download Facility Import Template"
+      responses:
+        "200":
+          $ref: "#/components/responses/facilityImport_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Facility
+      summary: "Import Facility"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/importFacility"
+      responses:
+        "201":
+          $ref: "#/components/responses/facilityImport_201"
+        "400":
+          $ref: "#/components/responses/facilityImport_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  
+  /tours:
+    get:
+      tags:
+        - Tour
+      summary: "Get All Tour"
+      parameters:
+        - $ref: "#/components/parameters/tourSearch"
+        - $ref: "#/components/parameters/tourPaginationStart"
+        - $ref: "#/components/parameters/tourPaginationLimit"
+        - $ref: "#/components/parameters/tourSortColumn"
+        - $ref: "#/components/parameters/tourSortDirection"
+      responses:
+        "200":
+          $ref: "#/components/responses/tourGetAll_200"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      tags:
+        - Tour
+      summary: "Create Tour"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createTour"
+      responses:
+        "201":
+          $ref: "#/components/responses/tourCreate_201"
+        "400":
+          $ref: "#/components/responses/tourCreate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  /tours/{id}:
+    get:
+      tags:
+        - Tour
+      summary: "Get Detail Tour"
+      parameters:
+        - $ref: "#/components/parameters/tourId"
+      responses:
+        "200":
+          $ref: "#/components/responses/tourGetDetail_200"
+        "404":
+          $ref: "#/components/responses/tourDetailUpdate_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    put:
+      tags:
+        - Tour
+      summary: "Update Tour"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/tourId"
+      requestBody:
+        $ref: "#/components/requestBodies/updateTour"
+      responses:
+        "200":
+          $ref: "#/components/responses/tourUpdate_200"
+        "400":
+          $ref: "#/components/responses/tourUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/tourDetailUpdate_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /reviews:
+    post:
+      tags:
+        - Review
+      summary: "Create Review"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createReview"
+      responses:
+        "201":
+          $ref: "#/components/responses/reviewCreate_201"
+        "400":
+          $ref: "#/components/responses/reviewCreate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "409":
+          $ref: "#/components/responses/reviewCreate_409"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /bookings:
+    get:
+      tags:
+        - Booking
+      summary: "Get All Booking"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingPaginationStart"
+        - $ref: "#/components/parameters/bookingPaginationLimit"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingGetAll_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    
+    post:
+      tags:
+        - Booking
+      summary: "Create Booking"
+      security:
+        - JWT: []
+      requestBody:
+        $ref: "#/components/requestBodies/createBooking"
+      responses:
+        "201":
+          $ref: "#/components/responses/bookingCreate_201"
+        "400":
+          $ref: "#/components/responses/bookingCreate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/bookingCreate_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  /bookings/{code}:
+    get:
+      tags:
+        - Booking
+      summary: "Detail Booking"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingCode"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingDetail_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/bookingGetDetailUpdate_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    patch:
+      tags:
+        - Booking
+      summary: "Update Booking"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingCode"
+      requestBody:
+        $ref: "#/components/requestBodies/updateBooking"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingUpdate_200"
+        "400":
+          $ref: "#/components/responses/bookingUpdate_400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/bookingGetDetailUpdate_404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  /bookings/export:
+    get:
+      tags:
+        - Booking
+      summary: "Export Transaction List"
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/bookingExport"
+      responses:
+        "200":
+          $ref: "#/components/responses/bookingExport_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/bookingExport_400"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  /reports:
+    get:
+      tags:
+        - Report
+      summary: "Dashboard Report"
+      security:
+        - JWT: []
+      responses:
+        "200":
+          $ref: "#/components/responses/reportGet_200"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+components:
+  schemas:
+    user:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        fullname:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        image:
+          type: string
+          format: binary
+        role:
+          type: string
+          enum: 
+            - user
+            - admin
+        tour_count:
+          type: integer
+        review_count:
+          type: integer
+        bookings:
+          type: array
+          items:
+            $ref: "#/components/schemas/booking"
+        token:
+          type: string
+    airline:
+      type: object
+      properties:
+        airline_id:
+          type: integer
+        name: 
+          type: string
+        logo:
+          type: string
+          format: binary
+    location:
+      type: object
+      properties:
+        location_id:
+          type: integer
+        name: 
+          type: string
+        image:
+          type: string
+          format: binary
+        tours:
+          type: array
+          items:
+            $ref: "#/components/schemas/tour"
+    facility:
+      type: object
+      properties:
+        facility_id:
+          type: integer
+        name:
+          type: string
+    itinerary:
+      type: object
+      properties:
+        itinerary_id:
+          type: integer
+        location:
+          type: string
+        description:
+          type: string
+    tour:
+      type: object
+      properties:
+        tour_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: currency
+        discount:
+          type: number
+          format: currency
+        admin_fee:
+          type: number
+          format: currency
+        quota:
+          type: integer
+        available:
+          type: integer
+        start:
+          type: string
+          format: date
+        finish:
+          type: string
+          format: date
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        thumbnail:
+          type: string
+          format: binary
+        picture:
+          type: array
+          items:
+            type: string
+            format: binary
+        location:
+          $ref: "#/components/schemas/location"
+        airline:
+          $ref: "#/components/schemas/airline"
+        itinerary:
+          type: array
+          items:
+            $ref: "#/components/schemas/itinerary"
+        facility:
+          type: object
+          properties:
+            include:
+              type: array
+              items:
+                $ref: "#/components/schemas/facility"
+            exclude:
+              type: array
+              items:
+                $ref: "#/components/schemas/facility"
+        status:
+          type: boolean
+          description: tour status open or close
+        review_count:
+          type: integer
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/review"
+    review:
+      type: object
+      properties:
+        review_id:
+          type: integer
+        tour:
+          $ref: "#/components/schemas/tour"
+        user:
+          $ref: "#/components/schemas/user"
+        text:
+          type: string
+        rating:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 5
+        created_at:
+          type: string
+          format: date-time
+
+    booking_detail:
+      type: object
+      properties:
+        booking_detail_id:
+          type: integer
+        document_number:
+          type: string
+        greeting:
+          type: string
+          enum:
+            - "mr"
+            - "mrs"
+        name:
+          type: string
+        nationality:
+          type: string
+        dob:
+          type: string
+          format: date-time
+    booking:
+      type: object
+      properties:
+        booking_code:
+          type: integer
+        tour:
+          $ref: "#/components/schemas/tour"
+        user:
+          $ref: "#/components/schemas/user"
+        detail_count:
+          type: integer
+        detail:
+          type: array
+          items:
+            $ref: "#/components/schemas/booking_detail"
+        admin_fee:
+          type: number
+          format: currency
+        discount:
+          type: integer
+          minimum: 0
+          maximum: 100
+        total:
+          type: number
+          format: currency
+        status:
+          type: string
+          enum:
+            - "pending"
+            - "approved"
+            - "cancel"
+            - "refund request"
+            - "refund approved"
+            - "refund complete"
+        booked_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+        payment_method:
+          type: string
+          enum:
+            - "mandiri_va"
+            - "bca_va"
+            - "bri_va"
+            - "bni_va"
+            - "permata_va"
+        payment_expired:
+          type: string
+          format: date-time
+        code_bill:
+          type: integer
+        key_bill:
+          type: integer
+        va_number:
+          type: integer
+
+    apiResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          nullable: true
+        pagination:
+          type: object
+          nullable: true
+        data:
+          oneOf:
+            - type: array
+              items:
+                type: object
+                nullable: true
+                oneOf:
+                  - $ref: "#/components/schemas/user"
+                  - $ref: "#/components/schemas/airline"
+                  - $ref: "#/components/schemas/location"
+                  - $ref: "#/components/schemas/facility"
+                  - $ref: "#/components/schemas/tour"
+                  - $ref: "#/components/schemas/booking"
+            - type: object
+              nullable: true
+              oneOf:
+                - $ref: "#/components/schemas/user"
+                - $ref: "#/components/schemas/airline"
+                - $ref: "#/components/schemas/location"
+                - $ref: "#/components/schemas/facility"
+                - $ref: "#/components/schemas/tour"
+                - $ref: "#/components/schemas/booking"
+
+  responses:
+    "400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "bad request"
+    "401":
+      description: "unauthorized"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "unauthorized":
+              value:
+                message: "please login before access it"
+            "incorrect token":
+              value:
+                message: "missing or malformed jwt"
+    "404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "not found"
+    "405":
+      description: "method not allowed"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "method not allowed"
+    "409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "conflict"
+    "500":
+      description: "internal server error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "internal server error"
+
+    "login_200":
+      description: "login success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "login success"
+            data:
+              user_id: 1
+              fullname: "Galih Prayoga"
+              image: "https://placehold.co/400x400/webp"
+              role: "admin"
+              token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    "login_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
+            "invalid email":
+              value:
+                message: "please fill email correctly"
+            "invalid password":
+              value:
+                message: "please fill password correctly"
+    "login_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "user not found":
+              value:
+                message: "user not found"
+            "wrong password":
+              value:
+                message: "wrong password"
+
+    "register_201":
+      description: "register success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "register success"
+    "register_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "no input":
+              value:
+                message: "please fill input correctly"
+            "invalid name":
+              value:
+                message: "please fill name correctly"
+            "invalid phone":
+              value:
+                message: "please fill phone correctly"
+            "invalid email":
+              value:
+                message: "please fill email correctly"
+            "invalid password":
+              value:
+                message: "please fill password correctly"
+    "register_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "email in use":
+              value:
+                message: "email is already in use"
+
+    "userProfile_200":
+      description: "get profile user success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get profile user success"
+            data: 
+              user_id: 1
+              fullname: "Galih Prayoga"
+              email: "galih@gmail.com"
+              image: "https://placehold.co/400x400/webp"
+              tour_count: 2
+              review_count: 1
+              bookings: [
+                {
+                  booking_code: 12345678,
+                  detail_count: 2,
+                  status: "pending",
+                  tour: {
+                    tour_id: 1,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    status: 1
+                  },
+                }
+              ]
+    "userUpdate_200":
+      description: "update user success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "update user success"
+    "userUpdate_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "email in use":
+              value:
+                message: "email is already in use"
+    "userDelete_200":
+      description: "delete user success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "delete user success"
+    "userUpdateDelete_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "user not found":
+              value:
+                message: "user not found"
+
+    "airlineGetAll_200":
+      description: "get all airline success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all airline success"
+            data: [
+              {
+                airline_id: 1,
+                name: "Batik Air",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 2,
+                name: "Citilink",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 3,
+                name: "Garuda Indonesia",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 4,
+                name: "Indonesia AirAsia",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 5,
+                name: "Lion Air",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 6,
+                name: "Nam Air",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 7,
+                name: "Pelita Air",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 8,
+                name: "Sriwijaya Air",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 9,
+                name: "Super Air Jet",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 10,
+                name: "TransNusa",
+                logo: "https://placehold.co/200x200/webp"
+              },
+              {
+                airline_id: 11,
+                name: "Wings Air",
+                logo: "https://placehold.co/200x200/webp"
+              }
+            ]
+    "airlineCreate_201":
+      description: "create airline success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "create airline success"
+    "airlineUpdate_200":
+      description: "update airline success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "update airline success"
+    "airlineCreateUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "empty name":
+              value:
+                message: "name can't be empty"
+    "airlineDelete_200":
+      description: "delete airline success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "delete airline success"
+    "airlineCreateUpdate_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "name in use":
+              value:
+                message: "airline name already exist"
+    "airlineUpdateDelete_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "airline not found":
+              value:
+                message: "airline not found"
+    "airlineDelete_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "airline in use":
+              value:
+                message: "airline used by other resources"
+    "airlineImport_200":
+      description: "get template import airline success"
+      content:
+        text/csv:
+          schema:
+            type: string
+            format: binary
+    "airlineImport_201":
+      description: "import airline success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "import airline success"
+    "airlineImport_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+    
+    "locationGetAll_200":
+      description: "get all location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all location success"
+            data: [
+              {
+                location_id: 1,
+                name: "Japan",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 2,
+                name: "Korea",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 3,
+                name: "Turkey",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 4,
+                name: "United Kingdom",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 5,
+                name: "United State",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 6,
+                name: "Dubai",
+                image: "https://placehold.co/150x150/webp"
+              },
+              {
+                location_id: 7,
+                name: "Mesir",
+                image: "https://placehold.co/150x150/webp"
+              }
+            ]
+    "locationCreate_201":
+      description: "create location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "create location success"
+    "locationUpdate_200":
+      description: "update location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "update location success"
+    "locationCreate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "empty name":
+              value:
+                message: "name can't be empty"
+            "empty image":
+              value:
+                message: "image can't be empty"
+    "locationUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "empty name":
+              value:
+                message: "name can't be empty"
+    "locationCreateUpdate_409":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "name in use":
+              value:
+                message: "location name already exist"
+    "locationGetDetail_200":
+      description: "get detail location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get detail location success"
+            data: {
+              name: "Japan",
+              image: "https://placehold.co/1440x438/webp",
+              tours: [
+                {
+                  tour_id: 1,
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  quota: 10,
+                  discount: 10,
+                  rating: 4.8,
+                  thumbnail: "https://placehold.co/400x400/webp",
+                  start: "2023-12-05T06:57:29.370Z",
+                  location: {
+                    "name": "Japan"
+                  }
+                },
+                {
+                  tour_id: 2,
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  quota: 10,
+                  thumbnail: "https://placehold.co/400x400/webp",
+                  start: "2023-12-05T06:57:29.370Z",
+                  discount: 10,
+                  location: {
+                    "name": "Japan"
+                  }
+                },
+                {
+                  tour_id: 3,
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  quota: 10,
+                  thumbnail: "https://placehold.co/400x400/webp",
+                  start: "2023-12-05T06:57:29.370Z",
+                  discount: 10,
+                  location: {
+                    "name": "Japan"
+                  }
+                }
+              ]
+            }
+    "locationGetDetailUpdateDelete_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "location not found":
+              value:
+                message: "location not found"
+    "locationDelete_200":
+      description: "delete location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "delete location success"
+    "locationDelete_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "location in use":
+              value:
+                message: "location used by other resources"
+    "locationImport_200":
+      description: "get template import location success"
+      content:
+        text/csv:
+          schema:
+            type: string
+            format: binary
+    "locationImport_201":
+      description: "import location success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "import location success"
+    "locationImport_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+    
+    "facilityGetAll_200":
+      description: "get all facility success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all facility success"
+            data: [
+              {
+                facility_id: 1,
+                name: "Flight",
+              },
+              {
+                facility_id: 2,
+                name: "Visa",
+              },
+              {
+                facility_id: 3,
+                name: "Tour Guide",
+              },
+              {
+                facility_id: 4,
+                name: "Hotel",
+              },
+              {
+                facility_id: 5,
+                name: "Snack",
+              }
+            ]
+    "facilityCreate_201":
+      description: "create facility success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "create facility success"
+    "facilityUpdate_200":
+      description: "update facility success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "update facility success"
+    "facilityCreateUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "invalid name":
+              value:
+                message: "name can't be empty"
+    "facilityCreateUpdate_409":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "name in use":
+              value:
+                message: "facility name already exist"
+    "facilityDelete_200":
+      description: "delete facility success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "delete facility success"
+    "facilityUpdateDelete_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "facility not found":
+              value:
+                message: "facility not found"
+    "facilityDelete_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "facility in use":
+              value:
+                message: "facility used by other resources"
+    "facilityImport_200":
+      description: "get template import facility success"
+      content:
+        text/csv:
+          schema:
+            type: string
+            format: binary
+    "facilityImport_201":
+      description: "import facility success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "import facility success"
+    "facilityImport_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+    
+    "tourGetAll_200":
+      description: "get all tour success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all tour success"
+            pagination:
+              prev: 
+              next: "/tours?limit=5&start=6&sort=price&dir=0&keyword=japan"
+            data: [
+              {
+                tour_id: 1,
+                title: "Jepang Winter Golden Route & Mount Fuji",
+                quota: 10,
+                discount: 10,
+                rating: 4.8,
+                price: 30000000,
+                thumbnail: "https://placehold.co/400x400/webp",
+                start: "2023-12-05T06:57:29.370Z",
+                location: {
+                  "name": "Japan"
+                }
+              },
+              {
+                tour_id: 2,
+                title: "Jepang Winter Golden Route & Mount Fuji",
+                quota: 10,
+                discount: 10,
+                rating: 4.8,
+                price: 30000000,
+                thumbnail: "https://placehold.co/400x400/webp",
+                start: "2023-12-05T06:57:29.370Z",
+                location: {
+                  "name": "Japan"
+                }
+              },
+              {
+                tour_id: 3,
+                title: "Jepang Winter Golden Route & Mount Fuji",
+                quota: 10,
+                discount: 10,
+                rating: 4.8,
+                price: 30000000,
+                thumbnail: "https://placehold.co/400x400/webp",
+                start: "2023-12-05T06:57:29.370Z",
+                location: {
+                  "name": "Japan"
+                }
+              },
+              {
+                tour_id: 4,
+                title: "Jepang Winter Golden Route & Mount Fuji",
+                quota: 10,
+                discount: 10,
+                rating: 4.8,
+                price: 30000000,
+                thumbnail: "https://placehold.co/400x400/webp",
+                start: "2023-12-05T06:57:29.370Z",
+                location: {
+                  "name": "Japan"
+                }
+              },
+              {
+                tour_id: 5,
+                title: "Jepang Winter Golden Route & Mount Fuji",
+                quota: 10,
+                discount: 10,
+                rating: 4.8,
+                price: 30000000,
+                thumbnail: "https://placehold.co/400x400/webp",
+                start: "2023-12-05T06:57:29.370Z",
+                location: {
+                  "name": "Japan"
+                }
+              }
+            ]
+    "tourGetDetail_200":
+      description: "get detail tour success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get detail tour success"
+            data:
+              tour_id: 1
+              title: "Jepang Winter Golden Route & Mount Fuji"
+              description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+              price: 30000000
+              discount: 3000000
+              admin_fee: 5000
+              quota: 25
+              available: 25
+              start: "2023-12-05T06:57:29.370Z"
+              finish: "2023-12-10T06:57:29.370Z"
+              rating: 4.8
+              airline: {
+                "name":"Garuda Indonesia"
+              }
+              location: {
+                "name": "Japan"
+              }
+              picture: [
+                "https://placehold.co/600x400/webp",
+                "https://placehold.co/400x400/webp",
+                "https://placehold.co/800x400/webp",
+              ]
+              facility: {
+                include: ["food", "transportation", "hotel", "souvenir"],
+                exclude: ["snack"]
+              }
+              itinerary: [
+                {
+                  location: "Jakarta",
+                  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                },
+                {
+                  location: "Japan",
+                  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                },
+              ]
+              reviews: [
+                {
+                  user: {
+                    user_id: 1,
+                    fullname: "Galih Prayoga",
+                    image: "https://placehold.co/400x400/webp"
+                  },
+                  text: "best tour",
+                  created_at: "2023-12-05T06:57:29.370Z"
+                }
+              ]
+    "tourDetailUpdate_404":
+      description: "not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "tour not found":
+              value:
+                message: "tour not found"
+    "tourCreate_201":
+      description: "create tour success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "create tour success"
+    "tourCreate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "invalid title":
+              value:
+                message: "title can't be empty"
+            "invalid location":
+              value:
+                message: "location can't be empty"
+            "invalid description":
+              value:
+                message: "description can't be empty"
+            "invalid discount":
+              value:
+                message: "discount can't be empty"
+            "invalid admin fee":
+              value:
+                message: "admin fee can't be empty"
+            "invalid start date":
+              value:
+                message: "start date can't be empty"
+            "invalid finish date":
+              value:
+                message: "finish date can't be empty"
+            "invalid included facility":
+              value:
+                message: "included facility can't be empty"
+            "invalid airline":
+              value:
+                message: "airline can't be empty"
+            "invalid quota":
+              value:
+                message: "quota can't be empty"
+            "invalid picture":
+              value:
+                message: "picture can't be empty"
+            "invalid thumbnail":
+              value:
+                message: "thumbnail can't be empty"
+            "invalid itinerary":
+              value:
+                message: "itinerary can't be empty"
+    "tourUpdate_200":
+      description: "update tour success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "update tour success"
+    "tourUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "invalid title":
+              value:
+                message: "title can't be empty"
+            "invalid location":
+              value:
+                message: "location can't be empty"
+            "invalid description":
+              value:
+                message: "description can't be empty"
+            "invalid discount":
+              value:
+                message: "discount can't be empty"
+            "invalid admin fee":
+              value:
+                message: "admin fee can't be empty"
+            "invalid start date":
+              value:
+                message: "start date can't be empty"
+            "invalid finish date":
+              value:
+                message: "finish date can't be empty"
+            "invalid included facility":
+              value:
+                message: "included facility can't be empty"
+            "invalid airline":
+              value:
+                message: "airline can't be empty"
+            "invalid quota":
+              value:
+                message: "quota can't be empty"
+            "invalid itinerary":
+              value:
+                message: "itinerary can't be empty"
+    
+    "reviewCreate_201":
+      description: "create review success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "create review success"
+    "reviewCreate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "invalid text":
+              value:
+                message: "please fill text correctly"
+            "invalid rating":
+              value:
+                message: "please fill rating correctly"
+    "reviewCreate_409":
+      description: "conflict"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "review exist":
+              value:
+                message: "review already exist"
+    
+    "bookingGetAll_200":
+      description: "get all booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get all booking success"
+            pagination:
+              prev: 
+              next: /bookings?limit=5&start=6
+            data: [
+              {
+                booking_code: 82312399126,
+                user: {
+                  fullname: "Galih"
+                },
+                tour: {
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  start: "2023-12-10T06:57:29.370Z",
+                  finish: "2023-12-10T06:57:29.370Z",
+                },
+                total: 30000000,
+                status: "pending",
+              },
+              {
+                booking_code: 82312399127,
+                user: {
+                  fullname: "Prayoga"
+                },
+                tour: {
+                  title: "Jepang Winter Golden Route & Mount Fuji",
+                  start: "2023-12-10T06:57:29.370Z",
+                  finish: "2023-12-10T06:57:29.370Z",
+                },
+                total: 30000000,
+                status: "approved",
+              }
+            ]
+    "bookingDetail_200":
+      description: "get detail booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get detail booking success"
+            data:
+              booking_code: 82312399126
+              detail_count: 2
+              status: "pending"
+              payment_method: "mandiri"
+              total: 22505000
+              code_bill: 70012
+              key_bill: 293751669219
+              payment_expired: "2023-12-05T06:57:29.370Z"
+              tour:
+                tour_id: 1
+                title: "Jepang Winter Golden Route & Mount Fuji"
+                description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                start: "2023-12-05T06:57:29.370Z"
+                finish: "2023-12-10T06:57:29.370Z"
+                rating: 4.8
+                airline: "Garuda Indonesia"
+                picture: [
+                  "https://placehold.co/600x400/webp",
+                  "https://placehold.co/400x400/webp",
+                  "https://placehold.co/800x400/webp",
+                ]
+                facility: {
+                  include: ["food", "transportation", "hotel", "souvenir"],
+                  exclude: ["snack"]
+                }
+                itinerary: [
+                  {
+                    location: "Jakarta",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                  },
+                  {
+                    location: "Japan",
+                    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+                  },
+                ]
+                reviews: [
+                  {
+                    user: {
+                      user_id: 1,
+                      fullname: "Galih Prayoga",
+                      image: "https://placehold.co/400x400/webp"
+                    },
+                    text: "best tour",
+                    created_at: "2023-12-05T06:57:29.370Z"
+                  }
+                ]
+    "bookingCreate_201":
+      description: "create booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "mandiri virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  booking_code: 311703221896
+                  total: 22505000
+                  code_bill: 70012
+                  key_bill: 293751669219
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+            "bca virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  booking_code: 311703221896
+                  total: 22505000
+                  va_number: 85977839865
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+            "bri virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  booking_code: 311703221896
+                  total: 22505000
+                  va_number: 859779590666198474
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+            "bni virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  booking_code: 311703221896
+                  total: 22505000
+                  va_number: 9888597781306417
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+            "permata virtual account":
+              value:
+                message: "create booking success"
+                data:
+                  booking_code: 311703221896
+                  total: 22505000
+                  va_number: 8590039559874267
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+    "bookingCreate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "empty tour id":
+              value:
+                message: "tour id can't be empty"
+            "empty passenger":
+              value:
+                message: "passenger data can't be empty"
+            "empty document number":
+              value:
+                message: "document number can't be empty"
+            "empty greeting":
+              value:
+                message: "greeting can't be empty"
+            "empty name":
+              value:
+                message: "name can't be empty"
+            "empty nationality":
+              value:
+                message: "nationality can't be empty"
+            "empty dob":
+              value:
+                message: "date of birth can't be empty"
+            "empty payment method":
+              value:
+                message: "payment method can't be empty"
+    "bookingCreate_404":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "tour not found":
+              value:
+                message: "tour not found"
+    "bookingUpdate_200":
+      description: "update booking success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "customer refund":
+              value:
+                message: "refund success"
+            "refund approved":
+              value:
+                message: "approve refund success"
+            "change payment method":
+              value:
+                message: "change payment method success"
+                data:
+                  total: 22505000
+                  va_number: 85977839865
+                  payment_expired: "2023-12-05T06:57:29.370Z"
+    "bookingUpdate_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+            "no input":
+              value:
+                message: "please fill at least 1 input"
+            "invalid payment method":
+              value:
+                message: "please fill payment method correctly"
+    "bookingGetDetailUpdate_404":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "booking not found":
+              value:
+                message: "booking not found"
+    "bookingExport_200":
+      description: "export transaction list success"
+      content:
+        text/csv:
+          schema:
+            type: string
+            format: binary
+        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+          schema:
+            type: string
+            format: binary
+        application/pdf:
+          schema:
+            type: string
+            format: binary
+    "bookingExport_400":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "bad request"
+    "bookingExport_404":
+      description: "bad request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          examples:
+            "default":
+              value:
+                message: "not found"
+            "transaction list not found":
+              value:
+                message: "transaction list not found"
+
+    "reportGet_200":
+      description: "get report success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/apiResponse"
+          example:
+            message: "get report success"
+            data:
+              total_user: 219
+              total_booking: 23
+              total_location: 16
+              total_tour: 7
+              graph_booking: [
+                {
+                  label: "Jan",
+                  total: 80
+                },
+                {
+                  label: "Feb",
+                  total: 100
+                },
+                {
+                  label: "Mar",
+                  total: 120
+                },
+                {
+                  label: "Apr",
+                  total: 20
+                },
+                {
+                  label: "May",
+                  total: 70
+                },
+                {
+                  label: "Jun",
+                  total: 80
+                },
+                {
+                  label: "Jul",
+                  total: 90
+                },
+                {
+                  label: "Aug",
+                  total: 0
+                },
+                {
+                  label: "Sep",
+                  total: 0
+                },
+                {
+                  label: "Oct",
+                  total: 0
+                },
+                {
+                  label: "Nov",
+                  total: 0
+                },
+                {
+                  label: "Dec",
+                  total: 0
+                }
+              ]
+              recent_booking: [
+                {
+                  booking_code: 82312399126,
+                  location: "Japan",
+                  price: 30000000
+                },
+              ]
+              top_tours: [
+                  {
+                    tour_id: 1,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: {
+                      "name": "Japan"
+                    }
+                  },
+                  {
+                    tour_id: 2,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: {
+                      "name": "Japan"
+                    }
+                  },
+                  {
+                    tour_id: 3,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: {
+                      "name": "Japan"
+                    }
+                  },
+                  {
+                    tour_id: 4,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: {
+                      "name": "Japan"
+                    }
+                  },
+                  {
+                    tour_id: 5,
+                    title: "Jepang Winter Golden Route & Mount Fuji",
+                    quota: 10,
+                    discount: 10,
+                    rating: 4.8,
+                    price: 30000000,
+                    thumbnail: "https://placehold.co/400x400/webp",
+                    start: "2023-12-05T06:57:29.370Z",
+                    location: {
+                      "name": "Japan"
+                    }
+                  }
+              ]
+
+  parameters:
+    airlineId:
+      name: "id"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+    airlineSearch: 
+      name: "keyword"
+      in: query
+      required: false
+      schema:
+        type: string
+
+    locationId:
+      name: "id"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+    locationSearch: 
+      name: "keyword"
+      in: query
+      required: false
+      schema:
+        type: string
+    locationLimit: 
+      name: "limit"
+      in: query
+      required: false
+      schema:
+        type: integer
+    
+    facilityId:
+      name: "id"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+    facilitySearch: 
+      name: "keyword"
+      in: query
+      required: false
+      schema:
+        type: string
+
+    tourId:
+      name: "id"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+    tourSearch:
+      name: "keyword"
+      description: "search keyword by tour title"
+      in: query
+      required: false
+      schema:
+        type: string
+        example: "japan"
+    tourPaginationStart:
+      name: "start"
+      description: "pagination start"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    tourPaginationLimit:
+      name: "limit"
+      description: "pagination limit"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    tourSortColumn:
+      name: "sort"
+      description: "sorting column(rating, price, discount, location, sold)"
+      in: query
+      required: false
+      schema:
+        type: string
+        example: "price"
+    tourSortDirection:
+      name: "dir"
+      description: "sorting direction asc(0/false) desc (1/true)"
+      in: query
+      required: false
+      schema:
+        type: boolean
+        example: false
+
+    bookingCode:
+      name: "code"
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 82312399126
+    bookingPaginationStart:
+      name: "start"
+      description: "pagination start"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    bookingPaginationLimit:
+      name: "limit"
+      description: "pagination limit"
+      in: query
+      required: false
+      schema:
+        type: integer
+        example: 0
+    bookingExport:
+      name: "type"
+      description: "export file type"
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 
+          excel
+    
+  requestBodies:
+    login:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - "email"
+              - "password"
+            properties:
+              email:
+                type: string 
+                example: "galih@gmail.com"
+              password:
+                type: string
+                example: "galih123"
+    register:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - "fullname"
+              - "phone"
+              - "email"
+              - "password"
+            properties:
+              fullname:
+                type: string 
+                example: "Galih Prayoga"
+              phone:
+                type: string 
+                example: "081229081229"
+              email:
+                type: string 
+                example: "galih@gmail.com"
+              password:
+                type: string
+                example: "galih123"
+    updateUser:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              fullname:
+                type: string 
+                example: "Galih Prayoga"
+              phone:
+                type: string 
+                example: "081229081229"
+              email:
+                type: string 
+                example: "galih@gmail.com"
+              password:
+                type: string
+                example: "galih123"
+              image:
+                type: string
+                format: binary
+
+    createUpdateAirline:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "name"
+            properties:
+              name:
+                type: string 
+                example: "Batik Air"
+              logo:
+                type: string
+                format: binary
+    importAirline:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "file"
+            properties:
+              file:
+                type: string
+                format: binary
+
+    createLocation:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "name"
+              - "image"
+            properties:
+              name:
+                type: string 
+                example: "Japan"
+              image:
+                type: string
+                format: binary
+    updateLocation:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "name"
+            properties:
+              name:
+                type: string 
+                example: "Japan"
+              image:
+                type: string
+                format: binary
+    importLocation:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "file"
+            properties:
+              file:
+                type: string
+                format: binary
+    
+    createUpdateFacility:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - "name"
+            properties:
+              name:
+                type: string 
+                example: "Spa"
+    importFacility:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "file"
+            properties:
+              file:
+                type: string
+                format: binary
+    
+    createTour:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "title"
+              - "location_id"
+              - "description"
+              - "price"
+              - "discount"
+              - "admin_fee"
+              - "start"
+              - "finish"
+              - "airline_id"
+              - "quota"
+              - "thumbnail"
+              - "itinerary"
+            properties:
+              title:
+                type: string 
+                example: "Jepang Winter Golden Route & Mount Fuji"
+              location_id:
+                type: integer 
+                example: 1
+              description:
+                type: string
+                example: "Everything feels extra spectacular in Dubai—from the ultra-modern Burj Khalifa to the souks and malls filled with gold and jewelry vendors. It`s a place where if you can dream it, you can do it: Whether that means skiing indoors, dune-surfing in the desert, or zip-lining above the city. But it`s not all glitz and adrenaline-pumping action. Stroll through the winding alleys of Al Fahidi Historical Neighborhood to see what Dubai was like during the mid-19th century. Or visit the Jumeirah Mosque (one of the few mosques open to non-Muslims) and learn about Emirati culture. Spot some street art on Jumeirah Beach Road and grab a bite at a shawarma shop, or spend the day hunting for spices and perfume then round things out with a Michelin-starred meal. You can really do it all and we`ve got more recs, below."
+              price:
+                type: number
+                format: currency
+                example: 30000000
+              discount:
+                type: integer
+                description: in percent (%)
+                maximum: 100
+                example: 10
+              admin_fee:
+                type: number
+                format: currency
+                example: 5000
+              start:
+                type: string
+                format: date-time
+                example: "2023-12-05T06:57:29.370Z"
+              finish:
+                type: string
+                format: date-time
+                example: "2023-12-10T06:57:29.370Z"
+              include_facility:
+                type: array
+                items:
+                  type: integer
+                  example: 1
+              airline_id:
+                type: integer
+                example: 3
+              quota:
+                type: integer
+                example: 25
+              picture:
+                type: array
+                items:
+                  type: string
+                  format: binary
+              thumbnail:
+                type: string
+                format: binary
+              itinerary:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    location: 
+                      type: string
+                      example: "Japan"
+                    description:
+                      type: string
+                      example: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+    updateTour:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - "title"
+              - "location_id"
+              - "description"
+              - "price"
+              - "discount"
+              - "admin_fee"
+              - "start"
+              - "finish"
+              - "airline_id"
+              - "quota"
+              - "itinerary"
+            properties:
+              title:
+                type: string 
+                example: "Jepang Winter Golden Route & Mount Fuji"
+              location_id:
+                type: integer 
+                example: 1
+              description:
+                type: string
+                example: "Everything feels extra spectacular in Dubai—from the ultra-modern Burj Khalifa to the souks and malls filled with gold and jewelry vendors. It`s a place where if you can dream it, you can do it: Whether that means skiing indoors, dune-surfing in the desert, or zip-lining above the city. But it`s not all glitz and adrenaline-pumping action. Stroll through the winding alleys of Al Fahidi Historical Neighborhood to see what Dubai was like during the mid-19th century. Or visit the Jumeirah Mosque (one of the few mosques open to non-Muslims) and learn about Emirati culture. Spot some street art on Jumeirah Beach Road and grab a bite at a shawarma shop, or spend the day hunting for spices and perfume then round things out with a Michelin-starred meal. You can really do it all and we`ve got more recs, below."
+              price:
+                type: number
+                format: currency
+                example: 30000000
+              discount:
+                type: integer
+                description: in percent (%)
+                maximum: 100
+                example: 10
+              admin_fee:
+                type: number
+                format: currency
+                example: 5000
+              start:
+                type: string
+                format: date-time
+                example: "2023-12-05T06:57:29.370Z"
+              finish:
+                type: string
+                format: date-time
+                example: "2023-12-10T06:57:29.370Z"
+              include_facility:
+                type: array
+                items:
+                  type: integer
+                  example: 1
+              airline_id:
+                type: integer
+                example: 3
+              quota:
+                type: integer
+                example: 25
+              picture:
+                type: array
+                items:
+                  type: string
+                  format: binary
+              thumbnail:
+                type: string
+                format: binary
+              itinerary:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    location: 
+                      type: string
+                      example: "Japan"
+                    description:
+                      type: string
+                      example: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+
+    createReview:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - "tour_id"
+              - "text"
+              - "rating"
+            properties:
+              tour_id:
+                type: integer 
+                example: 1
+              text:
+                type: string
+                example: "best tour"
+              rating:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 5
+                example: 4.8
+
+    createBooking:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - "tour_id"
+              - "detail"
+              - "payment_method"
+            properties:
+              tour_id:
+                type: integer
+                example: 1
+              detail:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    document_number:
+                      type: string
+                      example: "12345678"
+                    greeting:
+                      type: string
+                      example: "mr"
+                    name:
+                      type: string
+                      example: "Galih Prayoga"
+                    nationality:
+                      type: string
+                      example: "Indonesia"
+                    dob:
+                      type: string
+                      format: date-time
+                      example: "2023-12-10T06:57:29.370Z"
+              payment_method:
+                type: string
+                enum:
+                  - "mandiri"
+                  - "bca"
+                  - "bri"
+                  - "bni"
+                  - "permata"
+                example: "mandiri"
+
+    updateBooking:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - refund
+                  - refunded
+              payment_method:
+                type: string
+                enum:
+                  - "mandiri"
+                  - "bca"
+                  - "bri"
+                  - "bni"
+                  - "permata"
+          examples:
+            "customer refund":
+              value:
+                status: "refund"
+            "refund approved":
+              value:
+                status: "refunded"
+            "change payment method":
+              value:
+                payment_method: "bca"
+
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

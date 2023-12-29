@@ -103,7 +103,7 @@ func (mod *Booking) ToEntity() *bookings.Booking {
 	}
 
 	if !reflect.ValueOf(mod.Payment).IsZero() {
-		ent.Payment = mod.Payment.ToEntity()
+		ent.Payment = *mod.Payment.ToEntity()
 	}
 
 	return ent
@@ -201,7 +201,7 @@ type Payment struct {
 	Status        string `gorm:"column:status; type:varchar(20);"`
 
 	CreatedAt time.Time `gorm:"index"`
-	ExpiredAt time.Time
+	ExpiredAt time.Time `gorm:"nullable"`
 	PaidAt    time.Time `gorm:"default:null;"`
 }
 
@@ -239,7 +239,7 @@ func (mod *Payment) FromEntity(ent bookings.Payment) {
 	}
 }
 
-func (mod *Payment) ToEntity() bookings.Payment {
+func (mod *Payment) ToEntity() *bookings.Payment {
 	var ent = new(bookings.Payment)
 
 	if mod.Method != "" {
@@ -278,7 +278,7 @@ func (mod *Payment) ToEntity() bookings.Payment {
 		ent.PaidAt = mod.PaidAt
 	}
 
-	return *ent
+	return ent
 }
 
 type User struct {
@@ -323,7 +323,7 @@ type Tour struct {
 	Finish      time.Time
 	Quota       int
 	Available   int
-	Rating      float32
+	Rating      *float32
 
 	Picture   []File `gorm:"many2many:tour_attachment;"`
 	Itinerary []Itinerary
@@ -373,7 +373,7 @@ func (mod *Tour) ToEntity(excludeFacility []Facility) *bookings.Tour {
 		ent.Available = mod.Available
 	}
 
-	if mod.Rating != 0 {
+	if mod.Rating != nil {
 		ent.Rating = mod.Rating
 	}
 

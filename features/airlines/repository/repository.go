@@ -9,6 +9,7 @@ import (
 	"wanderer/utils/files"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func NewAirlineRepository(mysqlDB *gorm.DB, cloud files.Cloud) airlines.Repository {
@@ -114,6 +115,27 @@ func (repo *airlineRepository) Delete(id uint) error {
 
 	if deleteQuery.RowsAffected == 0 {
 		return errors.New("not found: airline not found")
+	}
+
+	return nil
+}
+
+func (repo *airlineRepository) Import(ctx context.Context, data []airlines.Airline) error {
+	var model []Airline
+	for _, air := range data {
+		var tmpAir = new(Airline)
+		tmpAir.FromEntity(air)
+
+		model = append(model, *tmpAir)
+	}
+
+	qry := repo.mysqlDB.WithContext(ctx).Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(model, 1000)
+	if qry.Error != nil {
+		if strings.Contains(qry.Error.Error(), "1062") {
+			return nil
+		}
+
+		return qry.Error
 	}
 
 	return nil

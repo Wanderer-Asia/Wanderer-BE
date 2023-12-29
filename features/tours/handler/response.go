@@ -3,7 +3,6 @@ package handler
 import (
 	"reflect"
 	"time"
-	"wanderer/features/reviews"
 	"wanderer/features/tours"
 )
 
@@ -13,30 +12,31 @@ type TourResponse struct {
 	Description string     `json:"description,omitempty"`
 	Price       float64    `json:"price"`
 	AdminFee    *float64   `json:"admin_fee,omitempty"`
-	Discount    int        `json:"discount"`
+	Discount    float64    `json:"discount"`
 	Start       time.Time  `json:"start,omitempty"`
 	Finish      *time.Time `json:"finish,omitempty"`
 	Quota       int        `json:"quota,omitempty"`
 	Available   int        `json:"available,omitempty"`
-	Rating      float32    `json:"rating,omitempty"`
+	Rating      float32    `json:"rating"`
 
 	Thumbnail string   `json:"thumbnail"`
 	Picture   []string `json:"picture,omitempty"`
 
 	Facility *struct {
-		Include []string `json:"include"`
-		Exclude []string `json:"exclude"`
-	} `json:"facility,omitempty"`
+		Include   []string `json:"include"`
+		IncludeId []uint   `json:"include_id"`
+		Exclude   []string `json:"exclude"`
+	} `json:"facility"`
 
-	Itinerary []TourItineraryResponse `json:"itinerary,omitempty"`
+	Itinerary []ItineraryResponse `json:"itinerary,omitempty"`
 
-	Location TourLocationResponse `json:"location"`
-	Airline  *TourAirlineResponse `json:"airline,omitempty"`
+	Location LocationResponse `json:"location"`
+	Airline  *AirlineResponse `json:"airline,omitempty"`
 
-	Reviews []TourReviewResponse `json:"reviews,omitempty"`
+	Reviews []ReviewResponse `json:"reviews,omitempty"`
 }
 
-func (res *TourResponse) FromEntity(ent tours.Tour) {
+func (res *TourResponse) FromEntity(ent tours.Tour, discountCurrency bool) {
 	if ent.Id != 0 {
 		res.Id = ent.Id
 	}
@@ -47,7 +47,11 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 	if ent.AdminFee != -1 {
 		res.AdminFee = &ent.AdminFee
 	}
-	res.Discount = ent.Discount
+	if discountCurrency {
+		res.Discount = float64(ent.Discount) / 100 * ent.Price
+	} else {
+		res.Discount = float64(ent.Discount)
+	}
 	res.Start = ent.Start
 	if !ent.Finish.IsZero() {
 		res.Finish = &ent.Finish
@@ -71,12 +75,14 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 
 	if len(ent.FacilityInclude) != 0 || len(ent.FacilityExclude) != 0 {
 		res.Facility = &struct {
-			Include []string `json:"include"`
-			Exclude []string `json:"exclude"`
+			Include   []string `json:"include"`
+			IncludeId []uint   `json:"include_id"`
+			Exclude   []string `json:"exclude"`
 		}{}
 	}
 
 	for _, fac := range ent.FacilityInclude {
+		res.Facility.IncludeId = append(res.Facility.IncludeId, fac.Id)
 		res.Facility.Include = append(res.Facility.Include, fac.Name)
 	}
 
@@ -85,60 +91,56 @@ func (res *TourResponse) FromEntity(ent tours.Tour) {
 	}
 
 	for _, it := range ent.Itinerary {
-		var tmpItinerary = new(TourItineraryResponse)
+		var tmpItinerary = new(ItineraryResponse)
 		tmpItinerary.FromEntity(it)
 
 		res.Itinerary = append(res.Itinerary, *tmpItinerary)
 	}
 
-	res.Location = TourLocationResponse{Name: ent.Location.Name}
+	res.Location = LocationResponse{Id: ent.Location.Id, Name: ent.Location.Name}
 	if !reflect.ValueOf(ent.Airline).IsZero() {
-		res.Airline = &TourAirlineResponse{Name: ent.Airline.Name}
+		res.Airline = &AirlineResponse{Id: ent.Airline.Id, Name: ent.Airline.Name}
 	}
 
 	for _, rev := range ent.Reviews {
-		var tmpReview = new(TourReviewResponse)
+		var tmpReview = new(ReviewResponse)
 		tmpReview.FromEntity(rev)
 
 		res.Reviews = append(res.Reviews, *tmpReview)
 	}
 }
 
-type TourItineraryResponse struct {
+type ItineraryResponse struct {
 	Location    string `json:"location"`
 	Description string `json:"description"`
 }
 
-func (res *TourItineraryResponse) FromEntity(ent tours.Itinerary) {
+func (res *ItineraryResponse) FromEntity(ent tours.Itinerary) {
 	res.Location = ent.Location
 	res.Description = ent.Description
 }
 
-type TourLocationResponse struct {
+type LocationResponse struct {
+	Id   uint   `json:"location_id"`
 	Name string `json:"name"`
 }
 
-type TourAirlineResponse struct {
+type AirlineResponse struct {
+	Id   uint   `json:"airline_id"`
 	Name string `json:"name"`
 }
 
-type TourReviewResponse struct {
-	User      TourUserResponse `json:"user"`
-	Text      string           `json:"text,omitempty"`
-	CreatedAt time.Time        `json:"created_at"`
+type ReviewResponse struct {
+	User      UserResponse `json:"user"`
+	Text      string       `json:"text,omitempty"`
+	CreatedAt time.Time    `json:"created_at"`
 }
 
-func (res *TourReviewResponse) FromEntity(ent reviews.Review) {
+func (res *ReviewResponse) FromEntity(ent tours.Review) {
 	if !reflect.ValueOf(ent.User).IsZero() {
-		if ent.User.Name != "" {
-			res.User.Name = ent.User.Name
-		}
-
-		if ent.User.ImageUrl != "" {
-			res.User.Image = ent.User.ImageUrl
-		} else {
-			res.User.Image = "default"
-		}
+		var tmpUser = new(UserResponse)
+		tmpUser.FromEntity(ent.User)
+		res.User = *tmpUser
 	}
 
 	if ent.Text != "" {
@@ -148,7 +150,24 @@ func (res *TourReviewResponse) FromEntity(ent reviews.Review) {
 	res.CreatedAt = ent.CreatedAt
 }
 
-type TourUserResponse struct {
+type UserResponse struct {
+	Id    uint   `json:"user_id"`
 	Name  string `json:"fullname"`
 	Image string `json:"image"`
+}
+
+func (res *UserResponse) FromEntity(ent tours.User) {
+	if ent.Id != 0 {
+		res.Id = ent.Id
+	}
+
+	if ent.Name != "" {
+		res.Name = ent.Name
+	}
+
+	if ent.Image != "" {
+		res.Image = ent.Image
+	} else {
+		res.Image = "default"
+	}
 }

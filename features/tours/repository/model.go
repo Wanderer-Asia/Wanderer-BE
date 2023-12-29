@@ -4,10 +4,6 @@ import (
 	"io"
 	"reflect"
 	"time"
-	ar "wanderer/features/airlines/repository"
-	fr "wanderer/features/facilities/repository"
-	lr "wanderer/features/locations/repository"
-	rr "wanderer/features/reviews/repository"
 	"wanderer/features/tours"
 
 	"gorm.io/gorm"
@@ -31,17 +27,17 @@ type Tour struct {
 
 	Picture []File `gorm:"many2many:tour_attachment"`
 
-	Facility []fr.Facility `gorm:"many2many:tour_facility"`
+	Facility []Facility `gorm:"many2many:tour_facility"`
 
 	Itinerary []Itinerary `gorm:"foreignKey:TourId"`
 
 	AirlineId uint
-	Airline   ar.Airline
+	Airline   Airline
 
 	LocationId uint
-	Location   lr.Location
+	Location   Location
 
-	Reviews []rr.Review `gorm:"foreignKey:TourId"`
+	Reviews []Review `gorm:"foreignKey:TourId"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -95,9 +91,9 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 		mod.Picture = append(mod.Picture, *modPicture)
 	}
 
-	for _, facility := range ent.FacilityExclude {
+	for _, facility := range ent.FacilityInclude {
 		if facility.Id != 0 {
-			mod.Facility = append(mod.Facility, fr.Facility{Id: facility.Id})
+			mod.Facility = append(mod.Facility, Facility{Id: facility.Id})
 		}
 	}
 
@@ -116,7 +112,7 @@ func (mod *Tour) FromEntity(ent tours.Tour) {
 	}
 }
 
-func (mod *Tour) ToEntity(excludeFacility []fr.Facility) *tours.Tour {
+func (mod *Tour) ToEntity(excludeFacility []Facility) *tours.Tour {
 	var ent = new(tours.Tour)
 
 	if mod.Id != 0 {
@@ -187,11 +183,11 @@ func (mod *Tour) ToEntity(excludeFacility []fr.Facility) *tours.Tour {
 	}
 
 	if !reflect.ValueOf(mod.Airline).IsZero() {
-		ent.Airline = *mod.Airline.ToEntity()
+		ent.Airline = mod.Airline.ToEntity()
 	}
 
 	if !reflect.ValueOf(mod.Location).IsZero() {
-		ent.Location = *mod.Location.ToEntity()
+		ent.Location = mod.Location.ToEntity()
 	}
 
 	for _, review := range mod.Reviews {
@@ -293,6 +289,123 @@ func (mod *Itinerary) ToEntity() tours.Itinerary {
 
 	if !mod.DeletedAt.Time.IsZero() {
 		ent.DeletedAt = mod.DeletedAt.Time
+	}
+
+	return *ent
+}
+
+type Facility struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Facility) ToEntity() *tours.Facility {
+	var ent = new(tours.Facility)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return ent
+}
+
+type Airline struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Airline) ToEntity() tours.Airline {
+	var ent = new(tours.Airline)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return *ent
+}
+
+type Location struct {
+	Id   uint
+	Name string
+}
+
+func (mod *Location) ToEntity() tours.Location {
+	var ent = new(tours.Location)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	return *ent
+}
+
+type Review struct {
+	Id        uint
+	Text      string
+	Rating    float32
+	CreatedAt time.Time
+	UserId    uint
+	User      User
+	TourId    uint
+}
+
+func (mod *Review) ToEntity() *tours.Review {
+	var ent = new(tours.Review)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Text != "" {
+		ent.Text = mod.Text
+	}
+
+	if mod.Rating != 0 {
+		ent.Rating = mod.Rating
+	}
+
+	if !reflect.ValueOf(mod.User).IsZero() {
+		ent.User = mod.User.ToEntity()
+	}
+
+	if !mod.CreatedAt.IsZero() {
+		ent.CreatedAt = mod.CreatedAt
+	}
+
+	return ent
+}
+
+type User struct {
+	Id    uint
+	Name  string `gorm:"column:fullname;"`
+	Image string
+}
+
+func (mod *User) ToEntity() tours.User {
+	var ent = new(tours.User)
+
+	if mod.Id != 0 {
+		ent.Id = mod.Id
+	}
+
+	if mod.Name != "" {
+		ent.Name = mod.Name
+	}
+
+	if mod.Image != "" {
+		ent.Image = mod.Image
 	}
 
 	return *ent

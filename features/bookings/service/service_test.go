@@ -308,8 +308,36 @@ func TestBookingServiceCreate(t *testing.T) {
 		caseData.Detail[0].DOB = dob
 	})
 
+	t.Run("tour not found", func(t *testing.T) {
+		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(nil, errors.New("not found: tour not found")).Once()
+
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, "tour")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("tour started", func(t *testing.T) {
+		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(-1 * time.Hour)}, nil).Once()
+
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "tour")
+		assert.ErrorContains(t, err, "started")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
 	t.Run("error from repository", func(t *testing.T) {
 		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(time.Hour)}, nil).Once()
 		repo.On("Create", ctx, caseData).Return(nil, errors.New("some error from repository")).Once()
 
 		result, err := srv.Create(ctx, caseData)
@@ -322,6 +350,7 @@ func TestBookingServiceCreate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(time.Hour)}, nil).Once()
 		repo.On("Create", ctx, caseData).Return(&caseData, nil).Once()
 
 		result, err := srv.Create(ctx, caseData)
@@ -333,51 +362,286 @@ func TestBookingServiceCreate(t *testing.T) {
 	})
 }
 
-func TestBookingServiceUpdate(t *testing.T) {
+func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	srv := NewBookingService(repo)
 	ctx := context.Background()
 
-	data := bookings.Booking{
-		Total:     10000,
-		Status:    "pending",
-		BookedAt:  time.Now(),
-		DeletedAt: time.Now(),
-		User: bookings.User{
-			Id: 1,
-		},
-		Tour: bookings.Tour{
-			Id: 1,
-		},
-		Detail: []bookings.Detail{
-			{
-				DocumentNumber: "123",
-				Greeting:       "mr",
-				Name:           "maman",
-				Nationality:    "indonesia",
-				DOB:            time.Now(),
-			},
-		},
-		Payment: bookings.Payment{
-			Bank: "bri",
-		},
-	}
-
 	t.Run("invalid booking code", func(t *testing.T) {
-		caseData := data
-
-		result, err := srv.Update(ctx, 0, caseData)
+		err := srv.UpdateBookingStatus(ctx, 0, "cancel")
 
 		assert.ErrorContains(t, err, "validate")
-		assert.ErrorContains(t, err, "booking code")
-		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "invalid booking code")
+	})
+
+	t.Run("booking not found", func(t *testing.T) {
+		repo.On("GetDetail", ctx, 123).Return(nil, errors.New("not found: booking not found")).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "cancel")
+
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, "booking")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("invalid booking status", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "pending")
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "invalid booking status")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("cancel booking while before status isn't pending", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "cancel")
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "cancel")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("request refund while booking status isn't approved", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{Status: "pending"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "refund")
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "refund")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("approve refund while refund not requested", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "refunded")
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "approve refund")
+
+		repo.AssertExpectations(t)
 	})
 
 	t.Run("error from repository", func(t *testing.T) {
-		caseData := data
-		repo.On("Update", ctx, 123, caseData).Return(nil, errors.New("some error from repository")).Once()
+		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+		repo.On("UpdateBookingStatus", ctx, 123, "refund").Return(errors.New("some error from repository")).Once()
 
-		result, err := srv.Update(ctx, 123, caseData)
+		err := srv.UpdateBookingStatus(ctx, 123, "refund")
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+		repo.On("UpdateBookingStatus", ctx, 123, "refund").Return(nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "refund")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestBookingServiceUpdatePaymentStatus(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	t.Run("invalid booking code", func(t *testing.T) {
+		err := srv.UpdatePaymentStatus(ctx, 0, "cancel")
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "invalid booking code")
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "approved", "settlement").Return(errors.New("some error from repository")).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "settlement")
+
+		assert.ErrorContains(t, err, "some error from repository")
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment settlement", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "approved", "settlement").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "settlement")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment cancel", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "cancel", "cancel").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "cancel")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment expire", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "cancel", "expire").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "expire")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment capture", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "pending", "capture").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "capture")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment deny", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "pending", "deny").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "deny")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("payment pending", func(t *testing.T) {
+		repo.On("UpdatePaymentStatus", ctx, 123, "pending", "pending").Return(nil).Once()
+
+		err := srv.UpdatePaymentStatus(ctx, 123, "pending")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("invalid payment status", func(t *testing.T) {
+		err := srv.UpdatePaymentStatus(ctx, 123, "tes")
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "invalid payment status")
+	})
+}
+
+func TestBookingServiceChangePaymentMethod(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	srv := NewBookingService(repo)
+	ctx := context.Background()
+
+	t.Run("invalid booking code", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: "bri"}
+		result, err := srv.ChangePaymentMethod(ctx, 0, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "invalid booking code")
+		assert.Nil(t, result)
+	})
+
+	t.Run("empty payment method", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: ""}
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "payment method")
+		assert.ErrorContains(t, err, "empty")
+		assert.Nil(t, result)
+	})
+
+	t.Run("booking not found", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: "bri"}
+
+		repo.On("GetDetail", ctx, 123).Return(nil, errors.New("not found: booking not found")).Once()
+
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
+
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, "booking")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("change payment method while booking wasn't pending", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: "bri"}
+
+		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "payment method")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("change payment method while same method and payment isn't expired", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: "bri"}
+
+		repoGetDetail := &bookings.Booking{
+			Status: "pending",
+			Payment: bookings.Payment{
+				Status:    "pending",
+				Bank:      "bri",
+				ExpiredAt: time.Now().Add(time.Hour),
+			},
+		}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
+
+		assert.NoError(t, err)
+		assert.Equal(t, &repoGetDetail.Payment, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("error from repository", func(t *testing.T) {
+		caseData := bookings.Payment{Bank: "bri"}
+
+		repoGetDetail := &bookings.Booking{
+			Status: "pending",
+			Payment: bookings.Payment{
+				Status:    "pending",
+				Bank:      "bri",
+				ExpiredAt: time.Now(),
+			},
+		}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		repoChangePaymentMethod := bookings.Booking{
+			Status:  "pending",
+			Payment: caseData,
+		}
+		repo.On("ChangePaymentMethod", ctx, 123, repoChangePaymentMethod).Return(nil, errors.New("some error from repository")).Once()
+
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
 
 		assert.ErrorContains(t, err, "some error from repository")
 		assert.Nil(t, result)
@@ -386,13 +650,28 @@ func TestBookingServiceUpdate(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		caseData := data
-		repo.On("Update", ctx, 123, caseData).Return(&caseData, nil).Once()
+		caseData := bookings.Payment{Bank: "bri"}
 
-		result, err := srv.Update(ctx, 123, caseData)
+		repoGetDetail := &bookings.Booking{
+			Status: "pending",
+			Payment: bookings.Payment{
+				Status:    "pending",
+				Bank:      "bri",
+				ExpiredAt: time.Now(),
+			},
+		}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		repoChangePaymentMethod := bookings.Booking{
+			Status:  "pending",
+			Payment: caseData,
+		}
+		repo.On("ChangePaymentMethod", ctx, 123, repoChangePaymentMethod).Return(&caseData, nil).Once()
+
+		result, err := srv.ChangePaymentMethod(ctx, 123, caseData)
 
 		assert.NoError(t, err)
-		assert.Equal(t, &caseData, result)
+		assert.Equal(t, caseData.Bank, result.Bank)
 
 		repo.AssertExpectations(t)
 	})

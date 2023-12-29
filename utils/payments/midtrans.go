@@ -122,6 +122,8 @@ func (pay *midtrans) NewBookingPayment(data bookings.Booking) (*bookings.Payment
 		data.Payment.ExpiredAt = expiredAt
 	}
 
+	data.Payment.BookingTotal = data.Total
+
 	return &data.Payment, nil
 }
 
