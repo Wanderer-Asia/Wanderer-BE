@@ -177,6 +177,11 @@ func (hdl *bookingHandler) Create() echo.HandlerFunc {
 				return c.JSON(http.StatusNotFound, response)
 			}
 
+			if strings.Contains(err.Error(), "unprocessable: ") {
+				response["message"] = strings.ReplaceAll(err.Error(), "unprocessable: ", "")
+				return c.JSON(http.StatusUnprocessableEntity, response)
+			}
+
 			response["message"] = "internal server error"
 			return c.JSON(http.StatusInternalServerError, response)
 		}

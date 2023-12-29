@@ -305,8 +305,36 @@ func TestBookingServiceCreate(t *testing.T) {
 		caseData.Detail[0].DOB = dob
 	})
 
+	t.Run("tour not found", func(t *testing.T) {
+		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(nil, errors.New("not found: tour not found")).Once()
+
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "not found")
+		assert.ErrorContains(t, err, "tour")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("tour started", func(t *testing.T) {
+		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(-1 * time.Hour)}, nil).Once()
+
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "tour")
+		assert.ErrorContains(t, err, "started")
+		assert.Nil(t, result)
+
+		repo.AssertExpectations(t)
+	})
+
 	t.Run("error from repository", func(t *testing.T) {
 		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(time.Hour)}, nil).Once()
 		repo.On("Create", ctx, caseData).Return(nil, errors.New("some error from repository")).Once()
 
 		result, err := srv.Create(ctx, caseData)
@@ -319,6 +347,7 @@ func TestBookingServiceCreate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		caseData := data
+		repo.On("GetTourById", ctx, uint(caseData.Tour.Id)).Return(&bookings.Tour{Start: time.Now().Add(time.Hour)}, nil).Once()
 		repo.On("Create", ctx, caseData).Return(&caseData, nil).Once()
 
 		result, err := srv.Create(ctx, caseData)

@@ -79,6 +79,15 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 		}
 	}
 
+	tour, err := srv.repo.GetTourById(ctx, data.Tour.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if tour.Start.Before(time.Now()) {
+		return nil, errors.New("unprocessable: tour has been started")
+	}
+
 	result, err := srv.repo.Create(ctx, data)
 	if err != nil {
 		return nil, err
