@@ -59,6 +59,7 @@ type User struct {
 	Name  string
 	Email string
 	Phone string
+	Role  string
 
 	ImageUrl string
 }
@@ -148,6 +149,7 @@ type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	GetTourById(ctx context.Context, tourId uint) (*Tour, error)
+	GetUserById(ctx context.Context, userId uint) (*User, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	UpdateBookingStatus(ctx context.Context, code int, status string) error
 	UpdatePaymentStatus(ctx context.Context, code int, bookingStatus string, paymentStatus string) error

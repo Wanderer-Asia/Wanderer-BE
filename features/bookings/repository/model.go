@@ -286,6 +286,7 @@ type User struct {
 	Name  string `gorm:"column:fullname;"`
 	Email string
 	Phone string
+	Role  string
 
 	Image string
 }
@@ -307,6 +308,10 @@ func (mod *User) ToEntity() *bookings.User {
 
 	if mod.Email != "" {
 		ent.Email = mod.Email
+	}
+
+	if mod.Role != "" {
+		ent.Role = mod.Role
 	}
 
 	return ent

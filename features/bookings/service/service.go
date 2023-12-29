@@ -79,6 +79,15 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 		}
 	}
 
+	user, err := srv.repo.GetUserById(ctx, data.User.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Role == "admin" {
+		return nil, errors.New("unprocessable: admin can't create booking")
+	}
+
 	tour, err := srv.repo.GetTourById(ctx, data.Tour.Id)
 	if err != nil {
 		return nil, err
