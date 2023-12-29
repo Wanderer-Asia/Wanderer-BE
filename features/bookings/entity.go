@@ -142,7 +142,7 @@ type Service interface {
 	UpdateBookingStatus(ctx context.Context, code int, status string) error
 	UpdatePaymentStatus(ctx context.Context, code int, paymentStatus string) error
 	ChangePaymentMethod(ctx context.Context, code int, data Payment) (*Payment, error)
-	Export(ctx context.Context) ([]Booking, error)
+	Export(c echo.Context, typeFile string) error
 }
 
 type Repository interface {
@@ -154,5 +154,8 @@ type Repository interface {
 	UpdateBookingStatus(ctx context.Context, code int, status string) error
 	UpdatePaymentStatus(ctx context.Context, code int, bookingStatus string, paymentStatus string) error
 	ChangePaymentMethod(ctx context.Context, code int, data Booking) (*Payment, error)
-	Export(ctx context.Context) ([]Booking, error)
+	Export() ([]Booking, error)
+	ExportFileCsv(c echo.Context, data []Booking) error
+	ExportFileExcel(c echo.Context, data []Booking) error
+	ExportFilePDF(c echo.Context, data []Booking) error
 }

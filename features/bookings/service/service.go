@@ -6,6 +6,8 @@ import (
 	"time"
 	"wanderer/features/bookings"
 	"wanderer/helpers/filters"
+
+	"github.com/labstack/echo/v4"
 )
 
 func NewBookingService(repo bookings.Repository) bookings.Service {
@@ -194,11 +196,27 @@ func (srv *bookingService) ChangePaymentMethod(ctx context.Context, code int, da
 	return result, nil
 }
 
-func (srv *bookingService) Export(ctx context.Context) ([]bookings.Booking, error) {
-	result, err := srv.repo.Export(ctx)
+func (srv *bookingService) Export(c echo.Context, typeFile string) error {
+	result, err := srv.repo.Export()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return result, nil
+	var data []bookings.Booking
+	for _, export := range result {
+		data = append(data, export)
+	}
+
+	switch typeFile {
+	case "pdf":
+		err = srv.repo.ExportFilePDF(c, data)
+	case "csv":
+		err = srv.repo.ExportFileCsv(c, data)
+	case "xlsx":
+		err = srv.repo.ExportFileExcel(c, data)
+	default:
+		err = errors.New("unsupported file type")
+	}
+
+	return err
 }

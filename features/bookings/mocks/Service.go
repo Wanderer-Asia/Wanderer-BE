@@ -6,6 +6,8 @@ import (
 	context "context"
 	bookings "wanderer/features/bookings"
 
+	echo "github.com/labstack/echo/v4"
+
 	filters "wanderer/helpers/filters"
 
 	mock "github.com/stretchr/testify/mock"
@@ -68,30 +70,18 @@ func (_m *Service) Create(ctx context.Context, data bookings.Booking) (*bookings
 	return r0, r1
 }
 
-// Export provides a mock function with given fields: ctx
-func (_m *Service) Export(ctx context.Context) ([]bookings.Booking, error) {
-	ret := _m.Called(ctx)
+// Export provides a mock function with given fields: c, typeFile
+func (_m *Service) Export(c echo.Context, typeFile string) error {
+	ret := _m.Called(c, typeFile)
 
-	var r0 []bookings.Booking
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]bookings.Booking, error)); ok {
-		return rf(ctx)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context) []bookings.Booking); ok {
-		r0 = rf(ctx)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, string) error); ok {
+		r0 = rf(c, typeFile)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]bookings.Booking)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GetAll provides a mock function with given fields: ctx, flt

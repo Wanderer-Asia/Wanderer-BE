@@ -3,12 +3,15 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 	"wanderer/features/bookings"
 	"wanderer/features/bookings/mocks"
 	"wanderer/helpers/filters"
 
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -707,18 +710,23 @@ func TestBookingServiceChangePaymentMethod(t *testing.T) {
 func TestBookingServiceExport(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	srv := NewBookingService(repo)
-	ctx := context.Background()
-	t.Run("Error from repository", func(t *testing.T) {
-		repo.On("Export", ctx).Return(nil, errors.New("some error from repository")).Once()
+	// ctx := context.Background()
 
-		result, err := srv.Export(ctx)
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	t.Run("Error from repository", func(t *testing.T) {
+		repo.On("Export").Return(nil, errors.New("some error from repository")).Once()
+
+		err := srv.Export(c, "pdf")
 
 		assert.ErrorContains(t, err, "some error from repository")
-		assert.Nil(t, result)
 
 		repo.AssertExpectations(t)
 	})
-	t.Run("Succes Case", func(t *testing.T) {
+	t.Run("Export PDF Succes Case", func(t *testing.T) {
 		data := []bookings.Booking{
 			{
 				Code:   123,
@@ -744,13 +752,118 @@ func TestBookingServiceExport(t *testing.T) {
 			},
 		}
 
-		repo.On("Export", ctx).Return(data, nil).Once()
+		repo.On("Export").Return(data, nil).Once()
 
-		result, err := srv.Export(ctx)
+		repo.On("ExportFilePDF", c, data).Return(nil).Once()
+
+		err := srv.Export(c, "pdf")
 
 		assert.NoError(t, err)
-		assert.Equal(t, data, result)
 
 		repo.AssertExpectations(t)
+	})
+	t.Run("Export Excel Succes Case", func(t *testing.T) {
+		data := []bookings.Booking{
+			{
+				Code:   123,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+			{
+				Code:   234,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+		}
+
+		repo.On("Export").Return(data, nil).Once()
+
+		repo.On("ExportFileExcel", c, data).Return(nil).Once()
+
+		err := srv.Export(c, "xlsx")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+	t.Run("Export CSV Succes Case", func(t *testing.T) {
+		data := []bookings.Booking{
+			{
+				Code:   123,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+			{
+				Code:   234,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+		}
+
+		repo.On("Export").Return(data, nil).Once()
+
+		repo.On("ExportFileCsv", c, data).Return(nil).Once()
+
+		err := srv.Export(c, "csv")
+
+		assert.NoError(t, err)
+
+		repo.AssertExpectations(t)
+	})
+	t.Run("Error export file Case", func(t *testing.T) {
+		data := []bookings.Booking{
+			{
+				Code:   123,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+			{
+				Code:   234,
+				Total:  10000,
+				Status: "pending",
+				User: bookings.User{
+					Id: 1,
+				},
+				Tour: bookings.Tour{
+					Id: 1,
+				},
+			},
+		}
+
+		repo.On("Export").Return(data, nil).Once()
+
+		err := srv.Export(c, "doc")
+
+		assert.ErrorContains(t, err, "unsupported file type")
 	})
 }
