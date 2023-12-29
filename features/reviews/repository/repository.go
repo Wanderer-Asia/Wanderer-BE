@@ -51,3 +51,41 @@ func (repo *reviewRepository) Create(userId uint, newReview reviews.Review) erro
 
 	return nil
 }
+
+func (repo *reviewRepository) GetTourById(tourId uint) (*reviews.Tour, error) {
+	var model = new(Review)
+	model.TourId = tourId
+
+	var tour = new(reviews.Tour)
+	if err := repo.mysqlDB.Model(&Tour{}).Where(&Tour{Id: model.TourId}).First(&tour).Error; err != nil {
+		return nil, err
+	}
+
+	return tour, nil
+}
+
+func (repo *reviewRepository) IsBooking(tourId uint, userId uint) bool {
+	var model = new(Review)
+	model.TourId = tourId
+	model.UserId = userId
+
+	var booking = new(reviews.Booking)
+	if err := repo.mysqlDB.Model(&Booking{}).Where(&Booking{TourId: model.TourId}, &Booking{UserId: model.UserId}).First(&booking).Error; err != nil {
+		return false
+	}
+
+	return true
+}
+
+func (repo *reviewRepository) IsApproved(tourId uint, userId uint) bool {
+	var model = new(Review)
+	model.TourId = tourId
+	model.UserId = userId
+
+	var booking = new(reviews.Booking)
+	if err := repo.mysqlDB.Model(&Booking{}).Where(&Booking{TourId: model.TourId}, &Booking{UserId: model.UserId}, &Booking{Status: "approved"}).First(&booking).Error; err != nil {
+		return false
+	}
+
+	return true
+}

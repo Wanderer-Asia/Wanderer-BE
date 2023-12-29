@@ -69,5 +69,14 @@ type User struct {
 }
 
 type Tour struct {
-	Id uint
+	Id     uint
+	Finish time.Time
+	Start  time.Time
+}
+
+type Booking struct {
+	Code   int
+	UserId uint
+	TourId uint
+	Status string
 }
