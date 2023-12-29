@@ -147,6 +147,7 @@ type Service interface {
 type Repository interface {
 	GetAll(ctx context.Context, flt filters.Filter) ([]Booking, int, error)
 	GetDetail(ctx context.Context, code int) (*Booking, error)
+	GetTourById(ctx context.Context, tourId uint) (*Tour, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	UpdateBookingStatus(ctx context.Context, code int, status string) error
 	UpdatePaymentStatus(ctx context.Context, code int, bookingStatus string, paymentStatus string) error

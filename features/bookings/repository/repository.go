@@ -115,6 +115,19 @@ func (repo *bookingRepository) GetDetail(ctx context.Context, code int) (*bookin
 	return data, nil
 }
 
+func (repo *bookingRepository) GetTourById(ctx context.Context, tourId uint) (*bookings.Tour, error) {
+	var mod = new(Tour)
+
+	if err := repo.mysqlDB.WithContext(ctx).Where(&Tour{Id: tourId}).First(mod).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("not found: tour not found")
+		}
+		return nil, err
+	}
+
+	return mod.ToEntity(nil), nil
+}
+
 func (repo *bookingRepository) Create(ctx context.Context, data bookings.Booking) (*bookings.Booking, error) {
 	var modBooking = new(Booking)
 	modBooking.FromEntity(data)
