@@ -6,6 +6,8 @@ import (
 	context "context"
 	bookings "wanderer/features/bookings"
 
+	echo "github.com/labstack/echo/v4"
+
 	filters "wanderer/helpers/filters"
 
 	mock "github.com/stretchr/testify/mock"
@@ -42,30 +44,72 @@ func (_m *Repository) Create(ctx context.Context, data bookings.Booking) (*booki
 	return r0, r1
 }
 
-// Export provides a mock function with given fields: ctx
-func (_m *Repository) Export(ctx context.Context) ([]bookings.Booking, error) {
-	ret := _m.Called(ctx)
+// Export provides a mock function with given fields:
+func (_m *Repository) Export() ([]bookings.Booking, error) {
+	ret := _m.Called()
 
 	var r0 []bookings.Booking
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]bookings.Booking, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func() ([]bookings.Booking, error)); ok {
+		return rf()
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []bookings.Booking); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func() []bookings.Booking); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]bookings.Booking)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
+}
+
+// ExportFileCsv provides a mock function with given fields: c, data
+func (_m *Repository) ExportFileCsv(c echo.Context, data []bookings.Booking) error {
+	ret := _m.Called(c, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, []bookings.Booking) error); ok {
+		r0 = rf(c, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ExportFileExcel provides a mock function with given fields: c, data
+func (_m *Repository) ExportFileExcel(c echo.Context, data []bookings.Booking) error {
+	ret := _m.Called(c, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, []bookings.Booking) error); ok {
+		r0 = rf(c, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ExportFilePDF provides a mock function with given fields: c, data
+func (_m *Repository) ExportFilePDF(c echo.Context, data []bookings.Booking) error {
+	ret := _m.Called(c, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, []bookings.Booking) error); ok {
+		r0 = rf(c, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetAll provides a mock function with given fields: ctx, flt

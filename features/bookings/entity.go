@@ -138,7 +138,7 @@ type Service interface {
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	Update(ctx context.Context, code int, data Booking) (*Booking, error)
-	Export(ctx context.Context) ([]Booking, error)
+	Export(c echo.Context, typeFile string) error
 }
 
 type Repository interface {
@@ -146,5 +146,8 @@ type Repository interface {
 	GetDetail(ctx context.Context, code int) (*Booking, error)
 	Create(ctx context.Context, data Booking) (*Booking, error)
 	Update(ctx context.Context, code int, data Booking) (*Booking, error)
-	Export(ctx context.Context) ([]Booking, error)
+	Export() ([]Booking, error)
+	ExportFileCsv(c echo.Context, data []Booking) error
+	ExportFileExcel(c echo.Context, data []Booking) error
+	ExportFilePDF(c echo.Context, data []Booking) error
 }
