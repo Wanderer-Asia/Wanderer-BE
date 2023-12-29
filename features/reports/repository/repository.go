@@ -28,7 +28,7 @@ func (repo *reportRepository) GetTotalUser(ctx context.Context) (int, error) {
 
 func (repo *reportRepository) GetTotalBooking(ctx context.Context) (int, error) {
 	var totalBooking int64
-	if err := repo.mysqlDB.WithContext(ctx).Model(&Booking{}).Where(&Booking{Status: "approved"}).Count(&totalBooking).Error; err != nil {
+	if err := repo.mysqlDB.WithContext(ctx).Model(&Booking{}).Count(&totalBooking).Error; err != nil {
 		return 0, err
 	}
 	return int(totalBooking), nil
@@ -51,7 +51,7 @@ func (repo *reportRepository) GetTotalTour(ctx context.Context) (int, error) {
 }
 
 func (repo *reportRepository) GetBookingCurrentYear(ctx context.Context) ([]reports.GraphBooking, error) {
-	rows, err := repo.mysqlDB.WithContext(ctx).Raw("SELECT yr.mnt, COALESCE(COUNT(code), 0) as total FROM (SELECT 1 AS mnt UNION SELECT 2 AS mnt UNION SELECT 3 AS mnt UNION SELECT 4 AS mnt UNION SELECT 5 AS mnt UNION SELECT 6 AS mnt UNION SELECT 7 AS mnt UNION SELECT 8 AS mnt UNION SELECT 9 AS mnt UNION SELECT 10 AS mnt UNION SELECT 11 AS mnt UNION SELECT 12 AS mnt) yr LEFT JOIN bookings ON DATE_FORMAT(bookings.booked_at, '%m') = yr.mnt AND DATE_FORMAT(bookings.booked_at, '%Y') = ? AND bookings.status = 'approved' GROUP BY yr.mnt", time.Now().Year()).Rows()
+	rows, err := repo.mysqlDB.WithContext(ctx).Raw("SELECT yr.mnt, COALESCE(COUNT(code), 0) as total FROM (SELECT 1 AS mnt UNION SELECT 2 AS mnt UNION SELECT 3 AS mnt UNION SELECT 4 AS mnt UNION SELECT 5 AS mnt UNION SELECT 6 AS mnt UNION SELECT 7 AS mnt UNION SELECT 8 AS mnt UNION SELECT 9 AS mnt UNION SELECT 10 AS mnt UNION SELECT 11 AS mnt UNION SELECT 12 AS mnt) yr LEFT JOIN bookings ON DATE_FORMAT(bookings.booked_at, '%m') = yr.mnt AND DATE_FORMAT(bookings.booked_at, '%Y') = ? GROUP BY yr.mnt", time.Now().Year()).Rows()
 	if err != nil {
 		return nil, err
 	}
