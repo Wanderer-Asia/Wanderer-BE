@@ -89,10 +89,11 @@ func (repo *userRepository) Detail(id uint) (*users.User, error) {
 
 	var tourTotal = make(map[uint]bool)
 	for _, booking := range modBooking {
-		if !tourTotal[booking.TourId] {
+		if !tourTotal[booking.TourId] && booking.Status == "approved" {
 			tourTotal[booking.TourId] = true
 		}
 	}
+
 	modUser.TourCount = len(tourTotal)
 
 	var totalReview int64
