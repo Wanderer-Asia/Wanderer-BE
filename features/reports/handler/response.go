@@ -120,6 +120,10 @@ func (res *TourResponse) FromEntity(ent reports.Tour) {
 		res.Discount = ent.Discount
 	}
 
+	if ent.Rating != 0 {
+		res.Rating = ent.Rating
+	}
+
 	if !ent.Start.IsZero() {
 		res.Start = ent.Start
 	}
