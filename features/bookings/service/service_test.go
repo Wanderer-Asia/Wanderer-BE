@@ -308,6 +308,25 @@ func TestBookingServiceCreate(t *testing.T) {
 		caseData.Detail[0].DOB = dob
 	})
 
+	t.Run("duplicate pasenger document number", func(t *testing.T) {
+		caseData := data
+		oldPassenger := caseData.Detail
+		caseData.Detail = append(caseData.Detail, bookings.Detail{
+			DocumentNumber: "123",
+			Greeting:       "mr",
+			Name:           "maman",
+			Nationality:    "indonesia",
+			DOB:            time.Now(),
+		})
+		result, err := srv.Create(ctx, caseData)
+
+		assert.ErrorContains(t, err, "validate")
+		assert.ErrorContains(t, err, "document number")
+		assert.Nil(t, result)
+
+		caseData.Detail = oldPassenger
+	})
+
 	t.Run("user not found", func(t *testing.T) {
 		caseData := data
 		repo.On("GetUserById", ctx, uint(caseData.User.Id)).Return(nil, errors.New("not found: user not found")).Once()
