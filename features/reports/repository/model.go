@@ -82,6 +82,10 @@ func (mod *Tour) ToEntity() *reports.Tour {
 		ent.Quota = mod.Quota
 	}
 
+	if mod.Rating != 0 {
+		ent.Rating = mod.Rating
+	}
+
 	if mod.Thumbnail != "" {
 		ent.Thumbnail = mod.Thumbnail
 	}
