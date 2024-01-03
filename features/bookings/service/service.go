@@ -59,11 +59,12 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 		return nil, errors.New("validate: passenger data can't be empty")
 	}
 
+	var passengerDocument = make(map[string]bool)
+
 	for _, detail := range data.Detail {
 		if detail.DocumentNumber == "" {
 			return nil, errors.New("validate: document number can't be empty")
 		}
-
 		if detail.Greeting == "" {
 			return nil, errors.New("validate: greeting can't be empty")
 		}
@@ -79,6 +80,12 @@ func (srv *bookingService) Create(ctx context.Context, data bookings.Booking) (*
 		if detail.DOB.IsZero() {
 			return nil, errors.New("validate: date of birth can't be empty")
 		}
+
+		if ok := passengerDocument[detail.DocumentNumber]; ok {
+			return nil, errors.New("validate: document number duplicate")
+		}
+
+		passengerDocument[detail.DocumentNumber] = true
 	}
 
 	user, err := srv.repo.GetUserById(ctx, data.User.Id)
