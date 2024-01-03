@@ -124,6 +124,10 @@ func (srv *bookingService) UpdateBookingStatus(ctx context.Context, code int, st
 		return err
 	}
 
+	if oldData.Tour.Start.Before(time.Now()) {
+		return errors.New("unprocessable: can't update booking after tour started")
+	}
+
 	switch status {
 	case "cancel":
 		if oldData.Status != "pending" {

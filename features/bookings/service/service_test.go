@@ -434,8 +434,20 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 
+	t.Run("after tour ends", func(t *testing.T) {
+		repoGetDetail := &bookings.Booking{Tour: bookings.Tour{Start: time.Now().Add(-24 * time.Hour)}}
+		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
+
+		err := srv.UpdateBookingStatus(ctx, 123, "cancel")
+
+		assert.ErrorContains(t, err, "unprocessable")
+		assert.ErrorContains(t, err, "tour started")
+
+		repo.AssertExpectations(t)
+	})
+
 	t.Run("invalid booking status", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{}
+		repoGetDetail := &bookings.Booking{Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 
 		err := srv.UpdateBookingStatus(ctx, 123, "pending")
@@ -447,7 +459,7 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	})
 
 	t.Run("cancel booking while before status isn't pending", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repoGetDetail := &bookings.Booking{Status: "approved", Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 
 		err := srv.UpdateBookingStatus(ctx, 123, "cancel")
@@ -459,7 +471,7 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	})
 
 	t.Run("request refund while booking status isn't approved", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{Status: "pending"}
+		repoGetDetail := &bookings.Booking{Status: "pending", Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 
 		err := srv.UpdateBookingStatus(ctx, 123, "refund")
@@ -471,7 +483,7 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	})
 
 	t.Run("approve refund while refund not requested", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repoGetDetail := &bookings.Booking{Status: "approved", Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 
 		err := srv.UpdateBookingStatus(ctx, 123, "refunded")
@@ -483,7 +495,7 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	})
 
 	t.Run("error from repository", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repoGetDetail := &bookings.Booking{Status: "approved", Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 		repo.On("UpdateBookingStatus", ctx, 123, "refund").Return(errors.New("some error from repository")).Once()
 
@@ -495,7 +507,7 @@ func TestBookingServiceUpdateBookingStatus(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		repoGetDetail := &bookings.Booking{Status: "approved"}
+		repoGetDetail := &bookings.Booking{Status: "approved", Tour: bookings.Tour{Start: time.Now().Add(24 * time.Hour)}}
 		repo.On("GetDetail", ctx, 123).Return(repoGetDetail, nil).Once()
 		repo.On("UpdateBookingStatus", ctx, 123, "refund").Return(nil).Once()
 
@@ -885,4 +897,27 @@ func TestBookingServiceExport(t *testing.T) {
 
 		assert.ErrorContains(t, err, "unsupported file type")
 	})
+}
+
+func Test_bookingService_UpdateBookingStatus(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		code   int
+		status string
+	}
+	tests := []struct {
+		name    string
+		srv     *bookingService
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.srv.UpdateBookingStatus(tt.args.ctx, tt.args.code, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("bookingService.UpdateBookingStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
