@@ -44,12 +44,18 @@ func (pay *midtrans) NewBookingPayment(data bookings.Booking) (*bookings.Payment
 		Phone: data.User.Phone,
 	}
 
+	pricePerPassenger := int64(data.Total) / int64(len(data.Detail))
+
 	var reqItem []mdt.ItemDetails
-	for _, detail := range data.Detail {
+	for pos, detail := range data.Detail {
+		if (pricePerPassenger*int64(len(data.Detail))) != int64(data.Total) && pos == len(data.Detail)-1 {
+			pricePerPassenger += int64(data.Total) - (pricePerPassenger * int64(len(data.Detail)))
+		}
+
 		reqItem = append(reqItem, mdt.ItemDetails{
 			ID:    detail.DocumentNumber,
 			Name:  detail.Greeting + " " + detail.Name,
-			Price: int64(data.Total / float64(len(data.Detail))),
+			Price: pricePerPassenger,
 			Qty:   1,
 		})
 	}
